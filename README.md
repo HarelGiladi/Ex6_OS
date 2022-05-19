@@ -1,11 +1,10 @@
 # Ex4_OS
 
 
+*Authors: Eilon Barashi & Harel Giladi*
+
+
 Server & Client stack - using Malloc and free implementation
-
-
-Authors: Eilon Barashi & Harel Giladi
-
 
 Implement a stack in a server which multiple clients can access and manipulate the stack the stack is synchronized.
 
@@ -19,7 +18,7 @@ To run the server : ./server
 
 To run the client : ./client
 
-To run the test : ./Test - a " the test has been successfully completed" message will appear in the terminal if all tests have passed.
+To run the test : ./Test - A message "the test has been successfully completed" will appear in the terminal if all tests have passed.
 
 Stack supported commands , from clients terminal :
 
