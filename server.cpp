@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -11,6 +12,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <pthread.h>
+#include "Stack.hpp"
 
 #define PORT "6666"  // the port users will be connecting to
 
@@ -26,55 +28,59 @@ Stack implementation
 */
 
 pthread_mutex_t mutex;
-typedef struct Nodes
-{
-    char data[1024];
-    struct Nodes* next;
-}Node;
-Node * head=NULL;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
+// typedef struct Node
+// {
+//     char data[1024];
+//     struct Node* next;
+// }Stack;
+// Stack *head=NULL;
 
-char * TOP() 
-{
-    if (head == NULL) {
-        return "STACK IS EMPTY";
-    } else {
-        return head->data;
-    }
-}
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////PUSH COMMAND///////////////////////////////////
+// char * TOP() 
+// {
+//     if (head == NULL) {
+//         char * output = "STACK IS EMPTY";
+//         return "STACK IS EMPTY";
+//     } else {
+//         return head->data;
+//     }
+// }
 
-void PUSH(char * value) 
-{
-    Node *newNode;
-    //malloc implemented by us
-    newNode = (struct Nodes*)malloc(sizeof(struct Nodes));
-    memset(newNode,0,sizeof(struct Nodes));
-    strcpy(newNode->data,value);
-    if (head == NULL) {
-        newNode->next = NULL;
-    } else {
-        newNode->next = head;
-    }
-    head = newNode;
-}
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////PUSH COMMAND///////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
+// void PUSH(char * value) 
+// {
+//     Stack *newNode;
+//     //malloc implemented by us
+//     newNode = (struct Node*)malloc(sizeof(struct Node));
+//     memset(newNode,0,sizeof(struct Node));
+//     strcpy(newNode->data,value);
+//     if (head == NULL) {
+//         newNode->next = NULL;
+//     } else {
+//         newNode->next = head;
+//     }
+//     head = newNode;
+// }
 
-void POP() 
-{
-    if (head == NULL) {
-        //do nothing
-    } else {
-        Node *temp = head;
-        head = head->next;
-        free(temp);
-    }
-}
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
+
+// void POP() 
+// {
+//     if (head == NULL) {
+//         //do nothing
+//     } else {
+//         Stack *temp = head;
+//         head = head->next;
+//         free(temp);
+//     }
+// }
 
 /////////////////////////////////////////////////////////////////////////////////////////////SERVER///////////////////////////////////////////////////////////////////////////////
+
+Ex4::Stack Stack;
 
 void sigchld_handler(int s)
 {
@@ -128,7 +134,7 @@ void * sendMessage(void * tempSock)
         close(sock);
      }
     else if(!strcmp("POP",command)){
-    POP();
+    Stack.POP();
     if (send(sock,"POPPED",strlen("POPPED"), 0)== -1)
         perror("send"); 
     }
@@ -137,7 +143,7 @@ void * sendMessage(void * tempSock)
 
     else if(!strcmp("TOP",command)){
     //send the string at the top.
-    if (send(sock,TOP(),strlen(TOP()), 0)== -1)
+    if (send(sock,Stack.TOP(),strlen(Stack.TOP()), 0)== -1)
         perror("send"); 
     }
 
@@ -152,11 +158,11 @@ void * sendMessage(void * tempSock)
         live=0;
      }
     buf2[numbytes2] = '\0';
-    PUSH(buf2);
+    Stack.PUSH(buf2);
     }
     pthread_mutex_unlock(&mutex);
     }
-    while(1){sleep(10000000000000);}
+    while(1){sleep(1000000000);}
 }
 
 /*
@@ -169,40 +175,40 @@ from - https://stackoverflow.com/questions/5422061/malloc-implementation
 *****************************************
 */
 
-typedef struct free_block {
-    size_t size;
-    struct free_block* next;
-} free_block;
+// typedef struct free_block {
+//     size_t size;
+//     struct free_block* next;
+// } free_block;
 
-static free_block free_block_list_head = { 0, 0 };
-//static const size_t overhead = sizeof(size_t);
-static const size_t align_to = 16;
+// static free_block free_block_list_head = { 0, 0 };
+// //static const size_t overhead = sizeof(size_t);
+// static const size_t align_to = 16;
 
 
-void* malloc(size_t size) {
-    size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
-    free_block* block = free_block_list_head.next;
-    free_block** head = &(free_block_list_head.next);
-    while (block != 0) {
-        if (block->size >= size) {
-            *head = block->next;
-            return ((char*)block) + sizeof(size_t);
-        }
-        head = &(block->next);
-        block = block->next;
-    }
+// void* malloc(size_t size) {
+//     size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
+//     free_block* block = free_block_list_head.next;
+//     free_block** head = &(free_block_list_head.next);
+//     while (block != 0) {
+//         if (block->size >= size) {
+//             *head = block->next;
+//             return ((char*)block) + sizeof(size_t);
+//         }
+//         head = &(block->next);
+//         block = block->next;
+//     }
 
-    block = (free_block*)sbrk(size);
-    block->size = size;
+//     block = (free_block*)sbrk(size);
+//     block->size = size;
 
-    return ((char*)block) + sizeof(size_t);
-}
+//     return ((char*)block) + sizeof(size_t);
+// }
 
-void free(void* ptr) {
-    free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
-    block->next = free_block_list_head.next;
-    free_block_list_head.next = block;
-}
+// void free(void* ptr) {
+//     free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
+//     block->next = free_block_list_head.next;
+//     free_block_list_head.next = block;
+// }
 
 int main(void)
 {

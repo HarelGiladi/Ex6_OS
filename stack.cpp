@@ -15,27 +15,27 @@
 
 using namespace std;
 
-typedef struct Nodes
+typedef struct Node
 {
     string data;
-    struct Nodes* next;
-}Node;
+    struct Node* next;
+}Stack;
 
-Node * head=NULL;
+Stack * head=NULL;
 
 string TOP() {
     if (head == NULL) {
         //printf("STACK IS EMPTY\n");
         return "STACK IS EMPTY";
     } else {
-        Node *temp = head;
+        Stack *temp = head;
         //printf("OUTPUT: %s\n", temp->data);
         return temp->data;
     }
 }
 void PUSH(string value) {
-    Node *newNode;
-    newNode = (struct Nodes*)calloc(1,sizeof(struct Nodes));
+    Stack *newNode;
+    newNode = (struct Node*)calloc(1,sizeof(struct Node));
     newNode->data = value;
     if (head == NULL) {
         newNode->next = NULL;
@@ -51,7 +51,7 @@ string POP() {
     } 
     else 
     {
-        Node *temp = head;
+        Stack *temp = head;
         string tempData = head->data;
         head = head->next;
         free(temp);

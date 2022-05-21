@@ -10,6 +10,9 @@
 
 #include <arpa/inet.h>
 
+#include "Mem_Imp.hpp"
+using namespace Ex4;
+
 #define PORT "6666" // the port client will be connecting to 
 
 #define SIZE 1024 // max number of bytes we can get at once 
@@ -24,43 +27,43 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-typedef struct free_block {
-    size_t size;
-    struct free_block* next;
-} free_block;
+// typedef struct free_block {
+//     size_t size;
+//     struct free_block* next;
+// } free_block;
 
-static free_block free_block_list_head = { 0, 0 };
-static const size_t overhead = sizeof(size_t);
-static const size_t align_to = 16;
+// static free_block free_block_list_head = { 0, 0 };
+// static const size_t overhead = sizeof(size_t);
+// static const size_t align_to = 16;
 
-/////////////////////////////////////////////////////////////////////////////////////////MALLOC IMPLEMENTATION////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////////MALLOC IMPLEMENTATION////////////////////////////////////////////////////////////
 
-void* malloc(size_t size) {
-    size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
-    free_block* block = free_block_list_head.next;
-    free_block** head = &(free_block_list_head.next);
-    while (block != 0) {
-        if (block->size >= size) {
-            *head = block->next;
-            return ((char*)block) + sizeof(size_t);
-        }
-        head = &(block->next);
-        block = block->next;
-    }
+// void* malloc(size_t size) {
+//     size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
+//     free_block* block = free_block_list_head.next;
+//     free_block** head = &(free_block_list_head.next);
+//     while (block != 0) {
+//         if (block->size >= size) {
+//             *head = block->next;
+//             return ((char*)block) + sizeof(size_t);
+//         }
+//         head = &(block->next);
+//         block = block->next;
+//     }
 
-    block = (free_block*)sbrk(size);
-    block->size = size;
+//     block = (free_block*)sbrk(size);
+//     block->size = size;
 
-    return ((char*)block) + sizeof(size_t);
-}
+//     return ((char*)block) + sizeof(size_t);
+// }
 
-////////////////////////////////////////////////////////////////////////////////////////FREE IMPLEMENTATION///////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////FREE IMPLEMENTATION///////////////////////////////////////////////////////////////
 
-void free(void* ptr) {
-    free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
-    block->next = free_block_list_head.next;
-    free_block_list_head.next = block;
-}
+// void free(void* ptr) {
+//     free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
+//     block->next = free_block_list_head.next;
+//     free_block_list_head.next = block;
+// }
 
 
 
@@ -73,7 +76,6 @@ void sendCommand(char * command, int sockfd){
    // close(sockfd)); 
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////CHECK COMMAND/////////////////////////////////\
 
 void runCommand(char * buffer,char * token, int sockfd){
 char s[2]=" ";
