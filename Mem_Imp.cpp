@@ -34,3 +34,14 @@ void Mem_Imp::free(void* ptr) {
     block->next = free_block_list_head.next;
     free_block_list_head.next = block;
 }
+
+void *Mem_Imp::calloc(size_t n, size_t size)
+{
+    size_t total = n * size;
+    void *p = Mem_Imp::malloc(total);
+
+    if (!p)
+        return NULL;
+
+    return memset(p, 0, total);
+}

@@ -1,3 +1,5 @@
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,15 +9,14 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
+#include <pthread.h>
 #include <arpa/inet.h>
-
 #include "Mem_Imp.hpp"
 using namespace Ex4;
 
 #define PORT "6666" // the port client will be connecting to 
 
-#define SIZE 1024 // max number of bytes we can get at once 
+#define MAXDATASIZE 100 // max number of bytes we can get at once 
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -27,168 +28,49 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-// typedef struct free_block {
-//     size_t size;
-//     struct free_block* next;
-// } free_block;
+bool prefix(const char *pre, const char *str)
+{
+    char cp;
+    char cs;
 
-// static free_block free_block_list_head = { 0, 0 };
-// static const size_t overhead = sizeof(size_t);
-// static const size_t align_to = 16;
+    if (!*pre)
+        return true;
 
-// /////////////////////////////////////////////////////////////////////////////////////////MALLOC IMPLEMENTATION////////////////////////////////////////////////////////////
-
-// void* malloc(size_t size) {
-//     size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
-//     free_block* block = free_block_list_head.next;
-//     free_block** head = &(free_block_list_head.next);
-//     while (block != 0) {
-//         if (block->size >= size) {
-//             *head = block->next;
-//             return ((char*)block) + sizeof(size_t);
-//         }
-//         head = &(block->next);
-//         block = block->next;
-//     }
-
-//     block = (free_block*)sbrk(size);
-//     block->size = size;
-
-//     return ((char*)block) + sizeof(size_t);
-// }
-
-// ////////////////////////////////////////////////////////////////////////////////////////FREE IMPLEMENTATION///////////////////////////////////////////////////////////////
-
-// void free(void* ptr) {
-//     free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
-//     block->next = free_block_list_head.next;
-//     free_block_list_head.next = block;
-// }
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////SENDING COMMAND///////////////////////////////////
-
-void sendCommand(char * command, int sockfd){
-  if (send(sockfd, command,strlen(command), 0)== -1)
-        perror("send"); 
-    //sleep(1);
-   // close(sockfd)); 
-}
-
-
-void runCommand(char * buffer,char * token, int sockfd){
-char s[2]=" ";
-int numbytes;
-char buf[SIZE];
-token=strtok(NULL,s);
-//printf("TOKEN IS : %s\n",token);
-memset(buf,0,strlen(buf));
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
-
-if(!strcmp(buffer,"TOP")){
-  //printf("entered TOP!!!\n");
-  sendCommand("TOP",sockfd);
-  if ((numbytes = recv(sockfd, buf, SIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
+    while ((cp = *pre++) && (cs = *str++))
+    {
+        if (cp != cs)
+            return false;
     }
-    buf[numbytes] = '\0';
-    printf("TOP: '%s'\n",buf);
+
+    if (!cs)
+        return false;
+
+    return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////POP COMMAND///////////////////////////////////
+void *T_FUNCTION(void* sockfd) 
+{
+    size_t buf_size = 1024;
+    char * input;
+    int i_sockfd = *(int *)sockfd;
+    while(true)
+    {
+        input = (char*)Ex4::Mem_Imp::calloc(buf_size, sizeof(char));
+        getline(&input, &buf_size, stdin);
+        
+        send(i_sockfd, input, buf_size, 0);
 
-else if(!strcmp(buffer,"POP")){
-   // printf("entered POP!!!\n");
-    sendCommand("POP",sockfd);
-    if ((numbytes = recv(sockfd, buf, SIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////PUSH COMMAND///////////////////////////////////
-
-else if(!strcmp(buffer,"PUSH")){
-char string[SIZE];
-memset(string,0,strlen(string));
-while (token!=NULL)
+        if (prefix("QUIT", input))
         {
-           strcat(string,token); 
-           if ((token=strtok(NULL,s))==NULL)    break;  
-          strcat(string," ");
+            exit(0);
         }
-//Here send the string to the server.
-//printf("entered PUSH!!!\n");
-sendCommand("PUSH",sockfd);
-if ((numbytes = recv(sockfd, buf, SIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
-    }
-    buf[numbytes] = '\0';
-    if (!strcmp("GOT PUSH",buf))
-    {
-        //printf("Sending the string= %s \n",string);
-        sendCommand(string,sockfd);
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////UNKNOWN COMMAND///////////////////////////////////
-
-else {
-    printf("UNKNOWN COMMAND ENTERED!\n");
-}
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////CLIENT INPUT///////////////////////////////////
-
-void communication(int sockfd){
-    char buf[SIZE];
-    int numbytes;
-    char command[1024],buffer[SIZE];
-    char *token,*string;
-    const char s[2]=" ";
-    memset(buf,0,strlen(buf));
-    if ((numbytes = recv(sockfd, buf, SIZE-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
-    }
-    buf[numbytes] = '\0';
-    //printf("client: received '%s'\n",buf);
-    if (!strcmp("connected",buf))
-    {
- while(1){
- printf("Enter STACK command: ");
- if (fgets(command,SIZE,stdin)==NULL)
-      {
-        printf("!Error in getting command!");
-      }else{
-        int commandLen=strlen(command);
-        //string=(char *)calloc(commandLen,sizeof(char));
-        string=(char *)malloc(commandLen*sizeof(char));
-        memset(string,0,strlen(string));
-        memcpy(string,&command[0],commandLen);
-        string[commandLen-1]='\0';
-        if (!strlen(string))
-           continue;
-        memset(buffer,0,strlen(buffer));
-        token=strtok(string,s);
-        strcat(buffer,token);
-        runCommand(token,token,sockfd);
-      }
-}
-    }
-    
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////MAIN/////////////////////////////////////////////////
-
 
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
-    char buf[SIZE];
+    char buf[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
@@ -234,8 +116,24 @@ int main(int argc, char *argv[])
     printf("client: connecting to %s\n", s);
 
     freeaddrinfo(servinfo); // all done with this structure
+    
+    pthread_t myth;
+    pthread_create(&myth, NULL, T_FUNCTION, &sockfd);
 
-    communication(sockfd);
+    while (true)
+    {
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+            perror("recv");
+            exit(1);
+        }
+        else 
+        {
+            buf[numbytes] = '\0';
+            printf("client: received '%s'\n",buf);   
+        }
+    } 
+    
+    close(sockfd);
 
     return 0;
 }

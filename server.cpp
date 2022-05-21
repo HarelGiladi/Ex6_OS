@@ -19,66 +19,8 @@
 #define BACKLOG 10   // how many pending connections queue will hold
 #define SIZE 1024
 
-/*
-*****************************************
-
-Stack implementation
-
-*****************************************
-*/
-
 pthread_mutex_t mutex;
 
-// typedef struct Node
-// {
-//     char data[1024];
-//     struct Node* next;
-// }Stack;
-// Stack *head=NULL;
-
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
-
-// char * TOP() 
-// {
-//     if (head == NULL) {
-//         char * output = "STACK IS EMPTY";
-//         return "STACK IS EMPTY";
-//     } else {
-//         return head->data;
-//     }
-// }
-
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////PUSH COMMAND///////////////////////////////////
-
-// void PUSH(char * value) 
-// {
-//     Stack *newNode;
-//     //malloc implemented by us
-//     newNode = (struct Node*)malloc(sizeof(struct Node));
-//     memset(newNode,0,sizeof(struct Node));
-//     strcpy(newNode->data,value);
-//     if (head == NULL) {
-//         newNode->next = NULL;
-//     } else {
-//         newNode->next = head;
-//     }
-//     head = newNode;
-// }
-
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
-
-// void POP() 
-// {
-//     if (head == NULL) {
-//         //do nothing
-//     } else {
-//         Stack *temp = head;
-//         head = head->next;
-//         free(temp);
-//     }
-// }
-
-/////////////////////////////////////////////////////////////////////////////////////////////SERVER///////////////////////////////////////////////////////////////////////////////
 
 Ex4::Stack Stack;
 
@@ -92,123 +34,53 @@ void sigchld_handler(int s)
     errno = saved_errno;
 }
 
-
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
+bool precmp (const char *pre, const char *str)
 {
-    if (sa->sa_family == AF_INET) {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
-    }
-
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+    return strncmp(pre, str, strlen(pre)) == 0;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void * sendMessage(void * tempSock)
 {
-    char command[SIZE];
-    int numbytes;
-    char buf2[SIZE];
-    int numbytes2;
+    char* command;
     int sock = *(int*) tempSock;
-    if (send(sock, "connected", strlen("connected"), 0)== -1)
+    if (send(sock, "connected", strlen("connected"), 0) == -1){
         perror("send"); 
-    int live=1;
-    while (live)
+    }
+    command = (char *)Ex4::Mem_Imp::malloc(SIZE);
+    memset(command,0,strlen(command));
+    
+    while (true)
     {
-     memset(command,0,strlen(command));
-     if ((numbytes = recv(sock, command, SIZE-1, 0)) == -1) {
-        perror("recv");
-        //exit(1);
-     }
-    command[numbytes] = '\0';
-    memset(buf2,0,strlen(buf2));
+        
+        if ((recv(sock, command, SIZE, 0)) != 0) 
+        {
+          
+            
+            pthread_mutex_lock(&mutex);
+        
+            if(precmp("POP",command))
+            {
+                Stack.POP();
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////POP COMMAND///////////////////////////////////
+            }
 
-    pthread_mutex_lock(&mutex);
-    if (strlen(command)==0)
-    {
-        live=0;
-        close(sock);
-     }
-    else if(!strcmp("POP",command)){
-    Stack.POP();
-    if (send(sock,"POPPED",strlen("POPPED"), 0)== -1)
-        perror("send"); 
+            else if(precmp("TOP",command))
+            {
+                std::cout << Stack.TOP() << std::endl;
+            }
+
+            else if(precmp("PUSH",command))
+            {
+                char* substr = (char*)Ex4::Mem_Imp::malloc(strlen(command));
+                strncpy(substr, command+4, strlen(command)-4);
+                Stack.PUSH(substr);
+            }
+            pthread_mutex_unlock(&mutex);
+        }
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////TOP COMMAND///////////////////////////////////
-
-    else if(!strcmp("TOP",command)){
-    //send the string at the top.
-    if (send(sock,Stack.TOP(),strlen(Stack.TOP()), 0)== -1)
-        perror("send"); 
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////PUSH COMMAND///////////////////////////////////
-
-    else if(!strcmp("PUSH",command)){
-     if (send(sock, "GOT PUSH",strlen("GOT PUSH"), 0)== -1)
-        perror("send"); 
-     if ((numbytes2 = recv(sock, buf2, SIZE-1, 0)) == -1) {
-        perror("recv");
-        close(sock);
-        live=0;
-     }
-    buf2[numbytes2] = '\0';
-    Stack.PUSH(buf2);
-    }
-    pthread_mutex_unlock(&mutex);
-    }
-    while(1){sleep(1000000000);}
+    return NULL;
 }
 
-/*
-*****************************************
-
-malloc and free implementation
-
-from - https://stackoverflow.com/questions/5422061/malloc-implementation
-
-*****************************************
-*/
-
-// typedef struct free_block {
-//     size_t size;
-//     struct free_block* next;
-// } free_block;
-
-// static free_block free_block_list_head = { 0, 0 };
-// //static const size_t overhead = sizeof(size_t);
-// static const size_t align_to = 16;
-
-
-// void* malloc(size_t size) {
-//     size = (size + sizeof(size_t) + (align_to - 1)) & ~ (align_to - 1);
-//     free_block* block = free_block_list_head.next;
-//     free_block** head = &(free_block_list_head.next);
-//     while (block != 0) {
-//         if (block->size >= size) {
-//             *head = block->next;
-//             return ((char*)block) + sizeof(size_t);
-//         }
-//         head = &(block->next);
-//         block = block->next;
-//     }
-
-//     block = (free_block*)sbrk(size);
-//     block->size = size;
-
-//     return ((char*)block) + sizeof(size_t);
-// }
-
-// void free(void* ptr) {
-//     free_block* block = (free_block*)(((char*)ptr) - sizeof(size_t));
-//     block->next = free_block_list_head.next;
-//     free_block_list_head.next = block;
-// }
 
 int main(void)
 {
@@ -220,6 +92,7 @@ int main(void)
     int yes=1;
     char s[INET6_ADDRSTRLEN];
     int rv;
+    
     pthread_mutex_init(&mutex,NULL);
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -274,7 +147,7 @@ int main(void)
         exit(1);
     }
 
-    printf("server: waiting for connections...\n");
+    printf("waiting for connections...\n");
     pthread_t threads[50];
     int j=0;
     while(1) {  // main accept() loop
@@ -285,12 +158,7 @@ int main(void)
             continue;
         }
 
-        inet_ntop(their_addr.ss_family,
-            get_in_addr((struct sockaddr *)&their_addr),
-            s, sizeof s);
-        printf("server: got connection from %s\n", s);
-        //printf("thread value : %p\n",&threads[j]);
-        //printf("SOCK FD VALUE = %p\n",&new_fd);
+        printf("client connected to the server\n");
         if(pthread_create(&threads[j++],NULL,sendMessage,&new_fd)!=0){
             printf("Thread creation error!\n");
         }
@@ -302,7 +170,6 @@ int main(void)
             }
             j=0;
         } 
-        // pthread_exit(NULL);
     }
     pthread_mutex_destroy(&mutex);
     return 0;
