@@ -191,42 +191,32 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-bool prefix(const char *pre, const char *str)
+bool precmp (const char *pre, const char *str)
 {
-    char cp;
-    char cs;
-
-    if (!*pre)
-        return true;
-
-    while ((cp = *pre++) && (cs = *str++))
-    {
-        if (cp != cs)
-            return false;
-    }
-
-    if (!cs)
-        return false;
-
-    return true;
+    return strncmp(pre, str, strlen(pre)) == 0;
 }
 
 void *T_FUNCTION(void* sockfd) 
 {
-    size_t buf_size = 1024;
+    size_t SIZE = 1024;
     char * input;
-    int i_sockfd = *(int *)sockfd;
+    char * output;
+    int sock = *(int *)sockfd;
     while(true)
     {
-        input = (char*)Ex4::Mem_Imp::calloc(buf_size, sizeof(char));
-        getline(&input, &buf_size, stdin);
-        
-        send(i_sockfd, input, buf_size, 0);
 
-        if (prefix("QUIT", input))
+        input = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
+        output = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
+
+        getline(&input, &SIZE, stdin);
+        
+        send(sock, input, SIZE, 0);
+
+        if (precmp("QUIT", input))
         {
             exit(0);
         }
+       
     }
 }
 
@@ -282,17 +272,22 @@ int main(int argc, char *argv[])
     
     pthread_t myth;
     pthread_create(&myth, NULL, T_FUNCTION, &sockfd);
+    
+    char * output;
+    output = (char*)Ex4::Mem_Imp::calloc(1024, sizeof(char));
 
     while (true)
     {
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+        memset(output,0,strlen(output));
+
+        if ((numbytes = recv(sockfd, output, 1024, 0)) == -1) {
             perror("recv");
             exit(1);
         }
         else 
         {
-            buf[numbytes] = '\0';
-            printf("client: received '%s'\n",buf);   
+            //buf[numbytes] = '\0';
+            printf("client: received %s\n",output);   
         }
     } 
     

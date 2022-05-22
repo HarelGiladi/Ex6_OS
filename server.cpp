@@ -47,33 +47,50 @@ void * sendMessage(void * tempSock)
         perror("send"); 
     }
     command = (char *)Ex4::Mem_Imp::malloc(SIZE);
-    memset(command,0,strlen(command));
+    
     
     while (true)
     {
-        
+        memset(command,0,strlen(command));
         if ((recv(sock, command, SIZE, 0)) != 0) 
         {
           
-            
             pthread_mutex_lock(&mutex);
         
             if(precmp("POP",command))
             {
                 Stack.POP();
-
+                 if (send(sock,"POP COMPLETED",15, 0)== -1){
+                    perror("send"); 
+                }
+                std::cout << "POP COMPLETED\n" << std::endl;
+                //char* out = Stack.POP();
+                // if (send(sock,Stack.POP(),strlen(Stack.POP()), 0)== -1){
+                //     perror("send"); 
+                // }
             }
 
             else if(precmp("TOP",command))
             {
-                std::cout << Stack.TOP() << std::endl;
+                char* ans = (char *)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
+                ans = Stack.TOP();
+                if (send(sock,ans,strlen(ans), 0)== -1){
+                    perror("send"); 
+                }
+                std::cout << ans << std::endl;
+
+                
             }
 
             else if(precmp("PUSH",command))
             {
-                char* substr = (char*)Ex4::Mem_Imp::malloc(strlen(command));
+                char* substr = (char*)Ex4::Mem_Imp::calloc(strlen(command),sizeof(char));
                 strncpy(substr, command+4, strlen(command)-4);
                 Stack.PUSH(substr);
+                 if (send(sock,"PUSH COMPLETED",16, 0)== -1){
+                    perror("send"); 
+                }
+                std::cout << "PUSH COMPLETED\n" << std::endl;
             }
             pthread_mutex_unlock(&mutex);
         }
@@ -89,8 +106,7 @@ int main(void)
     struct sockaddr_storage their_addr; // connector's address information
     socklen_t sin_size;
     struct sigaction sa;
-    int yes=1;
-    char s[INET6_ADDRSTRLEN];
+    int connect=1;
     int rv;
     
     pthread_mutex_init(&mutex,NULL);
@@ -112,7 +128,7 @@ int main(void)
             continue;
         }
 
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &connect,
                 sizeof(int)) == -1) {
             perror("setsockopt");
             exit(1);
@@ -147,7 +163,7 @@ int main(void)
         exit(1);
     }
 
-    printf("waiting for connections...\n");
+    std::cout << "waiting for connections...\n" << std::endl;
     pthread_t threads[50];
     int j=0;
     while(1) {  // main accept() loop
@@ -158,7 +174,7 @@ int main(void)
             continue;
         }
 
-        printf("client connected to the server\n");
+        std::cout << "client connected to the server\n" << std::endl;
         if(pthread_create(&threads[j++],NULL,sendMessage,&new_fd)!=0){
             printf("Thread creation error!\n");
         }

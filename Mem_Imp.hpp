@@ -12,11 +12,9 @@ namespace Ex4
     {
     public:
         static void *malloc(size_t size);
-        static void free(void *ptr);
-        
         static void *calloc(size_t n, size_t size);
-        static void *my_calloc_helper(size_t n, size_t size);
-        static void *my_malloc_helper(size_t size);
-        static void my_free_helper(void *ptr);
+        static void free(void *ptr);
+    
+     
     };
 }
