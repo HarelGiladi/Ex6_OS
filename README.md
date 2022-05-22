@@ -10,7 +10,7 @@ Implement a stack in a server which multiple clients can access and manipulate t
 
 How To Run:
 
-Open terminal in the directory of the dowload files make sure they all in the same dir and type: "make all" This will compile server.cpp , client.cpp and Test.cpp.
+Open terminal in the directory of the dowload files make sure they all in the same dir and type: "make all" This will compile the project
 
 After compiling:
 
