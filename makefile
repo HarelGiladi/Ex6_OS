@@ -19,10 +19,10 @@ Mem_Imp.o: Mem_Imp.cpp Mem_Imp.hpp
 	$(CC) $(FLAGS) -c Mem_Imp.cpp
 
 test.exe: 
-	$(CC) Mem_Imp.o Test.cpp -o test.exe
+		$(CC) Mem_Imp.o Test.cpp -o test.exe
 		
 
-PHONY:all clean
+PHONY:	all clean
 
 clean:
 	rm -f *.o .a *.exe Ex4
