@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <string.h>
 #include <netdb.h>
-#include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <pthread.h>
@@ -14,7 +13,6 @@ using namespace Ex4;
 
 #define PORT "6666" 
 
-#define MAXDATASIZE 100 
 
 void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
@@ -26,26 +24,27 @@ void *get_in_addr(struct sockaddr *sa){
 
 bool precmp (const char *pre, const char *str){return strncmp(pre, str, strlen(pre)) == 0;}
 
-void *send_handler(void* sockfd) 
+void *send_handler(void* socket) 
 {
     size_t SIZE = 1024;
     char * input;
-    int sock = *(int *)sockfd;
-    std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
+    int sock = *(int *)socket;
+    std::cout << "ENTER A COMMAND (TOP, POP, PUSH): \n" << std::endl;
     while(true)
     {
         input = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
         getline(&input, &SIZE, stdin);
         if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
             send(sock, input, SIZE, 0);
-            std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
+            sleep(1);
+            std::cout << "ENTER A COMMAND (TOP, POP, PUSH): \n" << std::endl;
         }
         if (precmp("QUIT", input)){exit(0);}  
     }
 }
 int main(int argc, char *argv[])
 {
-    int sockfd, numbytes;  
+    int sock;  
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
@@ -65,14 +64,14 @@ int main(int argc, char *argv[])
     }
 
     for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+        if ((sock = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
             perror("client: socket");
             continue;
         }
 
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
+        if (connect(sock, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sock);
             perror("client: connect");
             continue;
         }
@@ -87,12 +86,12 @@ int main(int argc, char *argv[])
 
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
             s, sizeof s);
-    printf("client: connecting to %s\n", s);
+    printf("CLIENT CONNECTED TO %s\n", s);
 
     freeaddrinfo(servinfo); 
     
     pthread_t client_thread;
-    pthread_create(&client_thread, NULL, send_handler, &sockfd);
+    pthread_create(&client_thread, NULL, send_handler, &sock);
     
     char * output;
     output = (char*)Ex4::Mem_Imp::calloc(1024, sizeof(char));
@@ -101,17 +100,24 @@ int main(int argc, char *argv[])
     {
         memset(output,0,strlen(output));
 
-        if ((numbytes = recv(sockfd, output, 1024, 0)) == -1) {
+        if ((recv(sock, output, 1024, 0)) == -1) {
             perror("recv");
             exit(1);
         }
         else 
         {
-            printf("OUTPUT: %s\n",output);   
+            if(precmp("DEBUG", output))
+            {
+                std::cout << output << std::endl;
+            }
+            else
+            {
+                printf("OUTPUT: %s\n",output);   
+            }
         }
     } 
     
-    close(sockfd);
+    close(sock);
 
     return 0;
 }  

@@ -36,11 +36,10 @@ void Mem_Imp::free(void* ptr) {
 
 void *Mem_Imp::calloc(size_t n, size_t size)
 {
-    size_t total = n * size;
-    void *p = Mem_Imp::malloc(total);
+    size_t total_size = n * size;
+    void *p = Mem_Imp::malloc(total_size);
 
-    if (!p)
-        return NULL;
+    if (!p){return NULL;}
 
-    return memset(p, 0, total);
+    return memset(p, 0, total_size);
 }

@@ -1,40 +1,28 @@
-
-
-# all: server client test
-
-# server:
-# 	clang server.cpp -pthread -o server
-	
-# client:
-# 	clang client.cpp -o client 
-# test:
-# 	clang++ Test.cpp -o Test
-# clean:
-# 	rm -rf server
-# 	rm -rf client
-# 	rm -rf Test
-
 CC=g++
 FLAGS=-Wall -pthread
 
 all: Ex4
 
-Ex4: server.o Mem_Imp.o Stack.o client
-	$(CC) $(FLAGS)  server.o Mem_Imp.o Stack.o -o server
+Ex4: server.o Mem_Imp.o Stack.o client.exe test.exe
+	$(CC) $(FLAGS)  server.o Mem_Imp.o Stack.o -o server.exe
 
-server.o: server.cpp
-	$(CC) $(FLAGS) -c server.cpp
+client.exe: client.cpp Mem_Imp.o
+	$(CC) $(FLAGS) -o client.exe client.cpp Mem_Imp.o
 
-MyStack.o: Stack.cpp Stack.hpp
+server.o: server.cpp 
+	$(CC) $(FLAGS) -c  server.cpp 
+
+Stack.o: Stack.cpp Stack.hpp
 	$(CC) $(FLAGS) -c Stack.cpp
 
-MyMemory.o: Mem_Imp.cpp Mem_Imp.hpp
+Mem_Imp.o: Mem_Imp.cpp Mem_Imp.hpp
 	$(CC) $(FLAGS) -c Mem_Imp.cpp
 
-client: client.cpp
-	$(CC) $(FLAGS) -o client client.cpp Mem_Imp.cpp 
+test.exe: 
+	$(CC) Mem_Imp.o Test.cpp -o test.exe
+		
 
-
+PHONY:all clean
 
 clean:
-	rm -f *.o .a server client Ex4 
+	rm -f *.o .a *.exe Ex4

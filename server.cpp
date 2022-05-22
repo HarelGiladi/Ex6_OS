@@ -4,13 +4,10 @@
 #include <errno.h>
 #include <string.h>
 #include <string>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <pthread.h>
 #include "Stack.hpp"
 
@@ -51,18 +48,30 @@ void * send_handler(void * tempSock)
     while (true)
     {
         memset(command,0,strlen(command));
-        if ((recv(sock, command, SIZE, 0)) != 0) 
+        if ((recv(sock, command, SIZE, 0)) !=-1) 
         {
           
             pthread_mutex_lock(&mutex);
         
             if(precmp("POP",command))
             {
-                Stack.POP();
-                 if (send(sock,"POP COMPLETED",15, 0)== -1){
-                    perror("send"); 
+                if(Stack.IsEmpty())
+                {
+                   if (send(sock,"DEBUG:STACK IS EMPTY",21, 0)== -1)
+                   {
+                    perror("send");
+                   }
+                   std::cout << "DEBUG:STACK IS EMPTY" << std::endl;
+
                 }
-                std::cout << "OUTPUT:" << "POP COMPLETED\n" << std::endl;
+                else
+                {
+                    Stack.POP();
+                    if (send(sock,"POP COMPLETED",15, 0)== -1){
+                        perror("send"); 
+                    }
+                    std::cout << "OUTPUT:" << "POP COMPLETED" << std::endl;
+                }
             }
 
             else if(precmp("TOP",command))
@@ -85,7 +94,7 @@ void * send_handler(void * tempSock)
                  if (send(sock,"PUSH COMPLETED",16, 0)== -1){
                     perror("send"); 
                 }
-                std::cout << "OUTPUT:" << "PUSH COMPLETED\n" << std::endl;
+                std::cout << "OUTPUT:" << "PUSH COMPLETED" << std::endl;
             }
             pthread_mutex_unlock(&mutex);
         }
@@ -94,9 +103,10 @@ void * send_handler(void * tempSock)
 }
 
 
+//the code was wrriten with the help of the internet
 int main(void)
 {
-    int sockfd, new_fd;  
+    int sock, new_sock;  
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; 
     socklen_t sin_size;
@@ -108,7 +118,7 @@ int main(void)
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE; // use my IP
+    hints.ai_flags = AI_PASSIVE;
 
     if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -116,20 +126,20 @@ int main(void)
     }
 
     for(p = servinfo; p != NULL; p = p->ai_next) {
-        if ((sockfd = socket(p->ai_family, p->ai_socktype,
+        if ((sock = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
             perror("server: socket");
             continue;
         }
 
-        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &connect,
+        if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &connect,
                 sizeof(int)) == -1) {
             perror("setsockopt");
             exit(1);
         }
 
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
+        if (bind(sock, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sock);
             perror("server: bind");
             continue;
         }
@@ -144,7 +154,7 @@ int main(void)
         exit(1);
     }
 
-    if (listen(sockfd, BACKLOG) == -1) {
+    if (listen(sock, BACKLOG) == -1) {
         perror("listen");
         exit(1);
     }
@@ -157,30 +167,32 @@ int main(void)
         exit(1);
     }
 
-    std::cout << "waiting for connections...\n" << std::endl;
+    std::cout << "WAITING FOR CONNECTIONS....\n" << std::endl;
     pthread_t threads[20];
     int j=0;
     while(1) {  
         sin_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-        if (new_fd == -1) {
+        new_sock = accept(sock, (struct sockaddr *)&their_addr, &sin_size);
+        if (new_sock == -1) {
             perror("accept");
             continue;
         }
 
-        std::cout << "client connected to the server\n" << std::endl;
-        if(pthread_create(&threads[j++],NULL,send_handler,&new_fd)!=0){
+        std::cout << "CLIENT CONNECTED TO THE SERVER\n" << std::endl;
+        if(pthread_create(&threads[j++],NULL,send_handler,&new_sock)!=0){
             printf("Thread creation error!\n");
         }
         if(j>=20){
             j=0;
-            while (j<20)
-            {
-                pthread_join(threads[j++],NULL);
-            }
+            while (j<20){pthread_join(threads[j++],NULL);}
             j=0;
         } 
     }
     pthread_mutex_destroy(&mutex);
+    for (size_t i = 0; i < 20; i++)
+    {
+        pthread_cancel(threads[i]);
+    }
+    
     return 0;
 }

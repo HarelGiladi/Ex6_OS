@@ -14,11 +14,12 @@ Open terminal in the directory of the dowload files make sure they all in the sa
 
 After compiling:
 
-To run the server : ./server
+To run the server : ./server.exe
 
-To run the client : ./client
+To run the client : ./client.exe
 
-To run the test : ./Test - A message "the test has been successfully completed" will appear in the terminal if all tests have passed.
+To run the test : ./test.exe - A message "TEST COMPLETED SUCCSSEFULLY" will appear in the terminal if all tests have passed.
+run ./server.exe before running the ./test.exe
 
 Stack supported commands , from clients terminal :
 
