@@ -193,36 +193,30 @@ bool precmp (const char *pre, const char *str){return strncmp(pre, str, strlen(p
 
 void *send_handler(void* sockfd) 
 {
-    size_t buf_size = 1024;
+    size_t SIZE = 1024;
     char * input;
-    int i_sockfd = *(int *)sockfd;
-    // printf("enter a command(TOP ,PUSH, POP): \n");
+    int sock = *(int *)sockfd;
     std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
     while(true)
     {
-        input = (char*)Ex4::Mem_Imp::calloc(buf_size, sizeof(char));
-        getline(&input, &buf_size, stdin);
+        input = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
+        getline(&input, &SIZE, stdin);
         if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
-            send(i_sockfd, input, buf_size, 0);
-            // printf("enter a command(TOP ,PUSH, POP): \n");
+            send(sock, input, SIZE, 0);
             std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
-
         }
-        if (precmp("QUIT", input)){exit(0);}
+        if (precmp("QUIT", input)){exit(0);}  
     }
 }
-
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
-    char buf[];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
 
     if (argc != 2) {
-        //fprintf(stderr,"usage: client hostname\n");
-        std::cout << "usage: client hostname \n" << std::endl;
+        fprintf(stderr,"usage: client hostname\n");
         exit(1);
     }
 
@@ -262,19 +256,23 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // all done with this structure
     
-    pthread_t myth;
-    pthread_create(&myth, NULL, send_handler, &sockfd);
+    pthread_t client_thread;
+    pthread_create(&client_thread, NULL, send_handler, &sockfd);
+    
+    char * output;
+    output = (char*)Ex4::Mem_Imp::calloc(1024, sizeof(char));
 
     while (true)
     {
-        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+        memset(output,0,strlen(output));
+
+        if ((numbytes = recv(sockfd, output, 1024, 0)) == -1) {
             perror("recv");
             exit(1);
         }
         else 
         {
-            buf[numbytes] = '\0';
-            printf("server send(client got): %s\n",buf);   
+            printf("client: received %s\n",output);   
         }
     } 
     
