@@ -14,9 +14,9 @@
 #include <pthread.h>
 #include "Stack.hpp"
 
-#define PORT "6666"  // the port users will be connecting to
+#define PORT "6666"  
 
-#define BACKLOG 10   // how many pending connections queue will hold
+#define BACKLOG 10  
 #define SIZE 1024
 
 pthread_mutex_t mutex;
@@ -26,7 +26,7 @@ Ex4::Stack Stack;
 
 void sigchld_handler(int s)
 {
-    // waitpid() might overwrite errno, so we save and restore it:
+    
     int saved_errno = errno;
 
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -39,11 +39,11 @@ bool precmp (const char *pre, const char *str)
     return strncmp(pre, str, strlen(pre)) == 0;
 }
 
-void * sendMessage(void * tempSock)
+void * send_handler(void * tempSock)
 {
     char* command;
     int sock = *(int*) tempSock;
-    if (send(sock, "connected", strlen("connected"), 0) == -1){
+    if (send(sock, "CONNECTED", 10, 0) == -1){
         perror("send"); 
     }
     command = (char *)Ex4::Mem_Imp::malloc(SIZE);
@@ -63,11 +63,7 @@ void * sendMessage(void * tempSock)
                  if (send(sock,"POP COMPLETED",15, 0)== -1){
                     perror("send"); 
                 }
-                std::cout << "POP COMPLETED\n" << std::endl;
-                //char* out = Stack.POP();
-                // if (send(sock,Stack.POP(),strlen(Stack.POP()), 0)== -1){
-                //     perror("send"); 
-                // }
+                std::cout << "OUTPUT:" << "POP COMPLETED\n" << std::endl;
             }
 
             else if(precmp("TOP",command))
@@ -77,7 +73,7 @@ void * sendMessage(void * tempSock)
                 if (send(sock,ans,strlen(ans), 0)== -1){
                     perror("send"); 
                 }
-                std::cout << ans << std::endl;
+                std::cout << "OUTPUT:" << ans << std::endl;
 
                 
             }
@@ -90,7 +86,7 @@ void * sendMessage(void * tempSock)
                  if (send(sock,"PUSH COMPLETED",16, 0)== -1){
                     perror("send"); 
                 }
-                std::cout << "PUSH COMPLETED\n" << std::endl;
+                std::cout << "OUTPUT:" << "PUSH COMPLETED\n" << std::endl;
             }
             pthread_mutex_unlock(&mutex);
         }
@@ -101,9 +97,9 @@ void * sendMessage(void * tempSock)
 
 int main(void)
 {
-    int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+    int sockfd, new_fd;  
     struct addrinfo hints, *servinfo, *p;
-    struct sockaddr_storage their_addr; // connector's address information
+    struct sockaddr_storage their_addr; 
     socklen_t sin_size;
     struct sigaction sa;
     int connect=1;
@@ -120,7 +116,6 @@ int main(void)
         return 1;
     }
 
-    // loop through all the results and bind to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
@@ -143,7 +138,7 @@ int main(void)
         break;
     }
 
-    freeaddrinfo(servinfo); // all done with this structure
+    freeaddrinfo(servinfo); 
 
     if (p == NULL)  {
         fprintf(stderr, "server: failed to bind\n");
@@ -155,7 +150,7 @@ int main(void)
         exit(1);
     }
 
-    sa.sa_handler = sigchld_handler; // reap all dead processes
+    sa.sa_handler = sigchld_handler; 
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sa, NULL) == -1) {
@@ -164,9 +159,9 @@ int main(void)
     }
 
     std::cout << "waiting for connections...\n" << std::endl;
-    pthread_t threads[50];
+    pthread_t threads[20];
     int j=0;
-    while(1) {  // main accept() loop
+    while(1) {  
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
@@ -175,12 +170,12 @@ int main(void)
         }
 
         std::cout << "client connected to the server\n" << std::endl;
-        if(pthread_create(&threads[j++],NULL,sendMessage,&new_fd)!=0){
+        if(pthread_create(&threads[j++],NULL,send_handler,&new_fd)!=0){
             printf("Thread creation error!\n");
         }
-        if(j>=50){
+        if(j>=20){
             j=0;
-            while (j<50)
+            while (j<20)
             {
                 pthread_join(threads[j++],NULL);
             }
