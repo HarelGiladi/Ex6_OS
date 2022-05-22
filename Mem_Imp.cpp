@@ -20,7 +20,7 @@ void* Mem_Imp::malloc(size_t size) {
         }
         head = &(block->next);
         block = block->next;
-    }
+}
 
     block = (free_block*)sbrk(size);
     block->size = size;

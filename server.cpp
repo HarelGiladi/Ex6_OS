@@ -104,6 +104,7 @@ void * send_handler(void * tempSock)
 
 
 //the code was wrriten with the help of the internet
+
 int main(void)
 {
     int sock, new_sock;  

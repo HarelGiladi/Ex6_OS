@@ -42,6 +42,8 @@ void *send_handler(void* socket)
         if (precmp("QUIT", input)){exit(0);}  
     }
 }
+
+//the code was wrriten with the help of the internet
 int main(int argc, char *argv[])
 {
     int sock;  

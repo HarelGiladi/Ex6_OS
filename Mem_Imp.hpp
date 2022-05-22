@@ -6,7 +6,7 @@ namespace Ex4
     {
         size_t size;
         struct free_block *next;
-    } free_block;
+    }free_block;
 
     class Mem_Imp
     {

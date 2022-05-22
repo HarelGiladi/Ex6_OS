@@ -17,7 +17,7 @@ bool Ex4::Stack::IsEmpty()
     return this->head == NULL;
 }
 
-char * Ex4::Stack::TOP() 
+char* Ex4::Stack::TOP() 
 {
     if (this->head == NULL) {
          char *output = (char *)Mem_Imp::malloc(25);

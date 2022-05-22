@@ -15,14 +15,14 @@ namespace Ex4
     class Stack
     {
 
-    private:
-        Node *head;
+        private:
+            Node *head;
 
-    public:
-        bool IsEmpty();
-        Stack();
-        void PUSH(char* val);
-        void POP();
-        char* TOP();
+        public:
+            bool IsEmpty();
+            Stack();
+            void PUSH(char* val);
+            void POP();
+            char* TOP();
     };
 }

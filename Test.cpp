@@ -15,7 +15,11 @@ using namespace std;
 
 #define PORT 6666
 
-bool precmp (const char *pre, const char *str){return strncmp(pre, str, strlen(pre)) == 0;}
+bool precmp (const char *pre, const char *str)
+{
+    return strncmp(pre, str, strlen(pre)) == 0; 
+}
+
 int main()
 {
     size_t SIZE  = 1024;
