@@ -12,13 +12,11 @@
 #include "Mem_Imp.hpp"
 using namespace Ex4;
 
-#define PORT "6666" // the port client will be connecting to 
+#define PORT "6666" 
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
+#define MAXDATASIZE 100 
 
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
+void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
@@ -26,33 +24,25 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-bool precmp (const char *pre, const char *str)
-{
-    return strncmp(pre, str, strlen(pre)) == 0;
-}
+bool precmp (const char *pre, const char *str){return strncmp(pre, str, strlen(pre)) == 0;}
 
-void *T_FUNCTION(void* sockfd) 
+void *send_handler(void* sockfd) 
 {
     size_t SIZE = 1024;
     char * input;
     int sock = *(int *)sockfd;
+    std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
     while(true)
     {
-
         input = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
-
         getline(&input, &SIZE, stdin);
-        
-        send(sock, input, SIZE, 0);
-
-        if (precmp("QUIT", input))
-        {
-            exit(0);
+        if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
+            send(sock, input, SIZE, 0);
+            std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
         }
-       
+        if (precmp("QUIT", input)){exit(0);}  
     }
 }
-
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
@@ -102,7 +92,7 @@ int main(int argc, char *argv[])
     freeaddrinfo(servinfo); 
     
     pthread_t client_thread;
-    pthread_create(&client_thread, NULL, T_FUNCTION, &sockfd);
+    pthread_create(&client_thread, NULL, send_handler, &sockfd);
     
     char * output;
     output = (char*)Ex4::Mem_Imp::calloc(1024, sizeof(char));
@@ -124,4 +114,4 @@ int main(int argc, char *argv[])
     close(sockfd);
 
     return 0;
-}
+}  

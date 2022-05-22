@@ -14,9 +14,8 @@
 #include <pthread.h>
 #include "Stack.hpp"
 
-#define PORT "6666"  
-
-#define BACKLOG 10  
+#define PORT "6666" 
+#define BACKLOG 10 
 #define SIZE 1024
 
 pthread_mutex_t mutex;
