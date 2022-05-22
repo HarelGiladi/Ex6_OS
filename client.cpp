@@ -177,13 +177,11 @@ int main(int argc, char *argv[])
 #include "Mem_Imp.hpp"
 using namespace Ex4;
 
-#define PORT "6666" // the port client will be connecting to 
+#define PORT "6666" 
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
+#define MAXDATASIZE 100 
 
-// get sockaddr, IPv4 or IPv6:
-void *get_in_addr(struct sockaddr *sa)
-{
+void *get_in_addr(struct sockaddr *sa){
     if (sa->sa_family == AF_INET) {
         return &(((struct sockaddr_in*)sa)->sin_addr);
     }
@@ -191,55 +189,40 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-bool prefix(const char *pre, const char *str)
-{
-    char cp;
-    char cs;
+bool precmp (const char *pre, const char *str){return strncmp(pre, str, strlen(pre)) == 0;}
 
-    if (!*pre)
-        return true;
-
-    while ((cp = *pre++) && (cs = *str++))
-    {
-        if (cp != cs)
-            return false;
-    }
-
-    if (!cs)
-        return false;
-
-    return true;
-}
-
-void *T_FUNCTION(void* sockfd) 
+void *send_handler(void* sockfd) 
 {
     size_t buf_size = 1024;
     char * input;
     int i_sockfd = *(int *)sockfd;
+    // printf("enter a command(TOP ,PUSH, POP): \n");
+    std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
     while(true)
     {
         input = (char*)Ex4::Mem_Imp::calloc(buf_size, sizeof(char));
         getline(&input, &buf_size, stdin);
-        
-        send(i_sockfd, input, buf_size, 0);
+        if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
+            send(i_sockfd, input, buf_size, 0);
+            // printf("enter a command(TOP ,PUSH, POP): \n");
+            std::cout << "enter a command(TOP, POP, PUSH): \n" << std::endl;
 
-        if (prefix("QUIT", input))
-        {
-            exit(0);
         }
+        if (precmp("QUIT", input)){exit(0);}
     }
 }
 
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
-    char buf[MAXDATASIZE];
+    char buf[];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
 
     if (argc != 2) {
-        fprintf(stderr,"usage: client hostname\n");
+        //fprintf(stderr,"usage: client hostname\n");
+        std::cout << "usage: client hostname \n" << std::endl;
         exit(1);
     }
 
@@ -252,7 +235,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // loop through all the results and connect to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
@@ -281,7 +263,7 @@ int main(int argc, char *argv[])
     freeaddrinfo(servinfo); // all done with this structure
     
     pthread_t myth;
-    pthread_create(&myth, NULL, T_FUNCTION, &sockfd);
+    pthread_create(&myth, NULL, send_handler, &sockfd);
 
     while (true)
     {
@@ -292,11 +274,11 @@ int main(int argc, char *argv[])
         else 
         {
             buf[numbytes] = '\0';
-            printf("client: received '%s'\n",buf);   
+            printf("server send(client got): %s\n",buf);   
         }
     } 
     
     close(sockfd);
 
     return 0;
-}
+}  
