@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "Mem_Imp.hpp"
-using namespace Ex4;
+using namespace Ex5;
 using namespace std;
 
 
@@ -45,7 +45,7 @@ int main()
     cout << "connected..." << endl;
     
     char * input;
-    input = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
+    input = (char*)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
     recv(sock, input, 1024 ,0);
 
     send(sock, "PUSH HI" , 8, 0);

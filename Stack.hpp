@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include "Mem_Imp.hpp"
 
-namespace Ex4
+namespace Ex5
 {
     class Node
     {
@@ -16,12 +16,12 @@ namespace Ex4
     {
 
         private:
-            Node *head;
-            char* curr_address;
+            Node *head = NULL;
+            char* curr_address = NULL;
 
         public:
-            bool IsEmpty();
-            Stack();
+            static bool IsEmpty(Stack *stack);
+            //Stack();
             static void PUSH(Stack *stack, char* val);
             static void POP(Stack *stack);
             static char* TOP(Stack *stack);

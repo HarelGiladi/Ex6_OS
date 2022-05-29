@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 #include "Mem_Imp.hpp"
-using namespace Ex4;
+using namespace Ex5;
 
 #define PORT "6666" 
 
@@ -32,7 +32,7 @@ void *send_handler(void* socket)
     std::cout << "ENTER A COMMAND (TOP, POP, PUSH): \n" << std::endl;
     while(true)
     {
-        input = (char*)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
+        input = (char*)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
         getline(&input, &SIZE, stdin);
         if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
             send(sock, input, SIZE, 0);
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     pthread_create(&client_thread, NULL, send_handler, &sock);
     
     char * output;
-    output = (char*)Ex4::Mem_Imp::calloc(1024, sizeof(char));
+    output = (char*)Ex5::Mem_Imp::calloc(1024, sizeof(char));
 
     while (true)
     {

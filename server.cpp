@@ -21,7 +21,7 @@ pthread_mutex_t mutex;
 
 struct flock lock;
 
-Ex4::Stack *Stack;
+Ex5::Stack *Stack;
 
 void sigchld_handler(int s)
 {
@@ -40,21 +40,29 @@ bool precmp (const char *pre, const char *str)
 
 void * send_handler(void * tempSock)
 {
-    char* command;
+    char* command = NULL;
     int sock = *(int*) tempSock;
     if (send(sock, "CONNECTED", 10, 0) == -1){
         perror("send"); 
     }
-    command = (char *)Ex4::Mem_Imp::malloc(SIZE);
-    
-    
+    command = (char *)Ex5::Mem_Imp::malloc(SIZE);
+    int numbytes;  
+    char buf[1024];
+      
     while (true)
     {
-        memset(&lock, 0, sizeof(lock));
-       
-        memset(command,0,strlen(command));
+        //memset(&lock, 0, sizeof(lock));
+
+        //memset(command,0,strlen(command));
         if ((recv(sock, command, SIZE, 0)) !=-1) 
         {
+        // numbytes = recv(sock, buf, sizeof(buf), 0);
+        // if (numbytes <=0) {
+        //     perror("recv");
+        //     break;
+        // }
+        // *(buf+numbytes) = '\0';
+            
           
             //pthread_mutex_lock(&mutex);
             lock.l_type = F_WRLCK;   
@@ -62,7 +70,7 @@ void * send_handler(void * tempSock)
         
             if(precmp("POP",command))
             {
-                if(Stack->IsEmpty())
+                if(Ex5::Stack::IsEmpty(Stack))
                 {
                    if (send(sock,"DEBUG:STACK IS EMPTY",21, 0)== -1)
                    {
@@ -73,7 +81,7 @@ void * send_handler(void * tempSock)
                 }
                 else
                 {
-                    Ex4::Stack::POP(Stack);
+                    Ex5::Stack::POP(Stack);
                     if (send(sock,"POP COMPLETED",15, 0)== -1){
                         perror("send"); 
                     }
@@ -83,8 +91,8 @@ void * send_handler(void * tempSock)
 
             else if(precmp("TOP",command))
             {
-                char* ans = (char *)Ex4::Mem_Imp::calloc(SIZE, sizeof(char));
-                ans = Ex4::Stack::TOP(Stack);
+                char* ans = (char *)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
+                ans = Ex5::Stack::TOP(Stack);
                 if (send(sock,ans,strlen(ans), 0)== -1){
                     perror("send"); 
                 }
@@ -95,10 +103,11 @@ void * send_handler(void * tempSock)
 
             else if(precmp("PUSH",command))
             {
-                char* substr = (char*)Ex4::Mem_Imp::calloc(strlen(command),sizeof(char));
+                char* substr = (char*)Ex5::Mem_Imp::calloc(strlen(command),sizeof(char));
                 strncpy(substr, command+4, strlen(command)-4);
-                Ex4::Stack::PUSH(Stack,substr);
+                Ex5::Stack::PUSH(Stack,substr);
                  if (send(sock,"PUSH COMPLETED",16, 0)== -1){
+                    std::cout << "error" << std::endl;
                     perror("send"); 
                 }
                 std::cout << "OUTPUT:" << "PUSH COMPLETED" << std::endl;
@@ -125,8 +134,8 @@ int main(void)
     int rv;
     
     //pthread_mutex_init(&mutex,NULL);
-    Stack = (Ex4::Stack*)mmap(NULL,1000000,PROT_READ |PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED ,-1,0);
-    Ex4::Stack::memory(Stack);
+    Stack = (Ex5::Stack*)mmap(NULL,1000000,PROT_READ |PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED ,-1,0);
+    Ex5::Stack::memory(Stack);
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -192,15 +201,22 @@ int main(void)
         }
 
         std::cout << "CLIENT CONNECTED TO THE SERVER\n" << std::endl;
-        pid_t pid = fork();
-        if( pid <0){
-            printf("failed fork");
+        // pid_t pid = fork();
+        // if( pid <0){
+        //     printf("failed fork");
 
-        }
-        else if(pid==0){
+        // }
+        // else if(pid==0){
+        //     send_handler(&new_sock);
+        //     exit(0);
+        // }
+        if (fork()==0) {
+            close(sock); // child doesnt need it
+            std::cout << "SERVER\n" << std::endl;
             send_handler(&new_sock);
-            exit(0);
+            return 1;
         }
+        j++;
         if(j>10){
             break;
 
