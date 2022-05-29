@@ -17,12 +17,14 @@ namespace Ex4
 
         private:
             Node *head;
+            char* curr_address;
 
         public:
             bool IsEmpty();
             Stack();
-            void PUSH(char* val);
-            void POP();
-            char* TOP();
+            static void PUSH(Stack *stack, char* val);
+            static void POP(Stack *stack);
+            static char* TOP(Stack *stack);
+            static char* memory(Stack* stack);
     };
 }

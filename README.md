@@ -4,9 +4,9 @@
 *Authors: Eilon Barashi & Harel Giladi*
 
 
-Server & Client stack - using Malloc and free implementation
+Server & Client stack - processes
 
-Implement a stack in a server which multiple clients can access and manipulate the stack the stack is synchronized.
+Implement a stack in a server which multiple clients can access and manipulate the stack the stack is synchronized using fcntl.
 
 How To Run:
 
@@ -30,4 +30,3 @@ TOP : will display on the client's terminal the string that last entered to the 
 POP: will pop the last entered string to the stack from the stack.
 
 
-Malloc & free implemntation: https://stackoverflow.com/questions/5422061/malloc-implementation
