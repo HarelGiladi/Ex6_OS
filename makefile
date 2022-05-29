@@ -1,9 +1,9 @@
 CC=g++
 FLAGS=-Wall -pthread
 
-all: Ex4
+all: Ex5
 
-Ex4: server.o Mem_Imp.o Stack.o client.exe test.exe
+Ex5: server.o Mem_Imp.o Stack.o client.exe test.exe
 	$(CC) $(FLAGS)  server.o Mem_Imp.o Stack.o -o server.exe
 
 client.exe: client.cpp Mem_Imp.o
@@ -25,4 +25,4 @@ test.exe:
 PHONY:	all clean
 
 clean:
-	rm -f *.o .a *.exe Ex4
+	rm -f *.o .a *.exe *.txt Ex4 

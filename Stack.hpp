@@ -17,14 +17,16 @@ namespace Ex5
 
         private:
             Node *head = NULL;
-            char* curr_address = NULL;
 
         public:
-            static bool IsEmpty(Stack *stack);
+            int fd;
+            char* curr_address = NULL;
+            bool IsEmpty();
+            int Init();
             //Stack();
-            static void PUSH(Stack *stack, char* val);
-            static void POP(Stack *stack);
-            static char* TOP(Stack *stack);
-            static char* memory(Stack* stack);
+            void PUSH(char* val);
+            void POP();
+            char* TOP();
+            //char* memory();
     };
 }

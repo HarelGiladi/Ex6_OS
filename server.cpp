@@ -16,12 +16,12 @@
 #define PORT "6666" 
 #define BACKLOG 10 
 #define SIZE 1024
-
+int fd;
 pthread_mutex_t mutex;
 
 struct flock lock;
 
-Ex5::Stack *Stack;
+Ex5::Stack* stack;
 
 void sigchld_handler(int s)
 {
@@ -33,6 +33,17 @@ void sigchld_handler(int s)
     errno = saved_errno;
 }
 
+int Init(){
+    fd = open("shared.txt", O_WRONLY | O_CREAT); 
+    // O_WRONLY - open for writing only
+    //O_CREAT - If the file exists, this flag has no effect
+    if (fd == -1) //The file didn't opened successfuly
+    {
+        printf("Error");
+        
+    }
+}
+
 bool precmp (const char *pre, const char *str)
 {
     return strncmp(pre, str, strlen(pre)) == 0;
@@ -42,7 +53,8 @@ void * send_handler(void * tempSock)
 {
     char* command = NULL;
     int sock = *(int*) tempSock;
-    if (send(sock, "CONNECTED", 10, 0) == -1){
+    if (send(sock, "CONNECTED", 10, 0) == -1)
+    {
         perror("send"); 
     }
     command = (char *)Ex5::Mem_Imp::malloc(SIZE);
@@ -51,9 +63,9 @@ void * send_handler(void * tempSock)
       
     while (true)
     {
-        //memset(&lock, 0, sizeof(lock));
+        memset(&lock, 0, sizeof(lock));
 
-        //memset(command,0,strlen(command));
+        memset(command,0,strlen(command));
         if ((recv(sock, command, SIZE, 0)) !=-1) 
         {
         // numbytes = recv(sock, buf, sizeof(buf), 0);
@@ -65,12 +77,13 @@ void * send_handler(void * tempSock)
             
           
             //pthread_mutex_lock(&mutex);
+            
             lock.l_type = F_WRLCK;   
-            fcntl(sock, F_SETLKW, &lock);
+            fcntl(fd, F_SETLKW, &lock);
         
             if(precmp("POP",command))
             {
-                if(Ex5::Stack::IsEmpty(Stack))
+                if(stack->IsEmpty())
                 {
                    if (send(sock,"DEBUG:STACK IS EMPTY",21, 0)== -1)
                    {
@@ -81,7 +94,7 @@ void * send_handler(void * tempSock)
                 }
                 else
                 {
-                    Ex5::Stack::POP(Stack);
+                    stack->POP();
                     if (send(sock,"POP COMPLETED",15, 0)== -1){
                         perror("send"); 
                     }
@@ -92,7 +105,7 @@ void * send_handler(void * tempSock)
             else if(precmp("TOP",command))
             {
                 char* ans = (char *)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
-                ans = Ex5::Stack::TOP(Stack);
+                ans = stack->TOP();
                 if (send(sock,ans,strlen(ans), 0)== -1){
                     perror("send"); 
                 }
@@ -105,16 +118,17 @@ void * send_handler(void * tempSock)
             {
                 char* substr = (char*)Ex5::Mem_Imp::calloc(strlen(command),sizeof(char));
                 strncpy(substr, command+4, strlen(command)-4);
-                Ex5::Stack::PUSH(Stack,substr);
+                stack->PUSH(substr);
                  if (send(sock,"PUSH COMPLETED",16, 0)== -1){
-                    std::cout << "error" << std::endl;
                     perror("send"); 
                 }
                 std::cout << "OUTPUT:" << "PUSH COMPLETED" << std::endl;
             }
+            
             //pthread_mutex_unlock(&mutex);
+            
             lock.l_type = F_UNLCK;
-            fcntl(sock, F_SETLKW, &lock);
+            fcntl(fd, F_SETLKW, &lock);
         }
     }
     return NULL;
@@ -132,10 +146,14 @@ int main(void)
     struct sigaction sa;
     int connect=1;
     int rv;
-    
+    unsigned long numNodes = 10*1048576 / sizeof(Ex5::Node);
     //pthread_mutex_init(&mutex,NULL);
-    Stack = (Ex5::Stack*)mmap(NULL,1000000,PROT_READ |PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED ,-1,0);
-    Ex5::Stack::memory(Stack);
+    
+   
+    Init();
+    stack = (Ex5::Stack*)mmap(NULL,sizeof(Ex5::Stack),PROT_READ |PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED ,-1,0);
+    stack->curr_address = (char*)mmap(NULL, sizeof(Ex5::Node)*numNodes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, -1, 0);
+    //Ex5::Stack::memory(&stack);
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
@@ -210,34 +228,20 @@ int main(void)
         //     send_handler(&new_sock);
         //     exit(0);
         // }
-        if (fork()==0) {
-            close(sock); // child doesnt need it
-            std::cout << "SERVER\n" << std::endl;
+      // Child process
+        if (!fork()) {
+            close(sock);
             send_handler(&new_sock);
-            return 1;
+            close(new_sock);
+            exit(0);
         }
-        j++;
-        if(j>10){
-            break;
+        close(new_sock);
+        // j++;
+        // if(j>10){
+        //     break;
 
-        }
+        // }
     }
-
-
-    //     if(pthread_create(&threads[j++],NULL,send_handler,&new_sock)!=0){
-    //         printf("Thread creation error!\n");
-    //     }
-    //     if(j>=20){
-    //         j=0;
-    //         while (j<20){pthread_join(threads[j++],NULL);}
-    //         j=0;
-    //     } 
-    // }
-    // pthread_mutex_destroy(&mutex);
-    // for (size_t i = 0; i < 20; i++)
-    // {
-    //     pthread_cancel(threads[i]);
-    // }
     
     return 0;
 }
