@@ -1,5 +1,5 @@
 CC=g++
-FLAGS=-Wall -pthread
+ FLAGS=-Wall -pthread
 
 all: Ex5
 
