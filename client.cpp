@@ -43,7 +43,7 @@ void *send_handler(void* socket)
             send(sock, "QUIT", SIZE, 0);
             exit(0);}  
     }
-}
+ }
 
 //the code was wrriten with the help of the internet
 int main(int argc, char *argv[])

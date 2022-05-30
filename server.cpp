@@ -50,7 +50,7 @@ void * send_handler(void * tempSock)
         memset(command,0,strlen(command));
         if ((recv(*sock, command, SIZE, 0)) !=-1) 
         {
-            if (precmp("QUIT",command))
+             if (precmp("QUIT",command))
             { 
                 printf("DEBUG: CLOSE CONNECTION WITH CLIENT \n");
                 break;

@@ -10,7 +10,7 @@ struct flock locker;
 
 bool Ex5::Stack::IsEmpty()
 {
-    //locker.l_type = F_WRLCK;
+     //locker.l_type = F_WRLCK;
     //fcntl(fd, F_SETLKW, &locker);
     return this->head == NULL;
    // locker.l_type = F_UNLCK;

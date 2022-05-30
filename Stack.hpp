@@ -16,7 +16,7 @@ namespace Ex5
     {
 
         private:
-            Node *head = NULL;
+             Node *head = NULL;
 
         public:
             //int fd;

@@ -2,7 +2,7 @@
 
 namespace Ex5
 {
-    typedef struct free_block
+     typedef struct free_block
     {
         size_t size;
         struct free_block *next;
