@@ -19,11 +19,9 @@ namespace Ex5
             Node *head = NULL;
 
         public:
-            int fd;
+            //int fd;
             char* curr_address = NULL;
             bool IsEmpty();
-            int Init();
-            //Stack();
             void PUSH(char* val);
             void POP();
             char* TOP();

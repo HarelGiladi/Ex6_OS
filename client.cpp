@@ -29,7 +29,7 @@ void *send_handler(void* socket)
     size_t SIZE = 1024;
     char * input;
     int sock = *(int *)socket;
-    std::cout << "ENTER A COMMAND (TOP, POP, PUSH): \n" << std::endl;
+    std::cout << "ENTER A COMMAND (TOP, POP, PUSH, QUIT): \n" << std::endl;
     while(true)
     {
         input = (char*)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
@@ -37,9 +37,11 @@ void *send_handler(void* socket)
         if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
             send(sock, input, SIZE, 0);
             sleep(1);
-            std::cout << "ENTER A COMMAND (TOP, POP, PUSH): \n" << std::endl;
+            std::cout << "ENTER A COMMAND (TOP, POP, PUSH,QUIT): \n" << std::endl;
         }
-        if (precmp("QUIT", input)){exit(0);}  
+        if (precmp("QUIT", input)){
+            send(sock, "QUIT", SIZE, 0);
+            exit(0);}  
     }
 }
 

@@ -25,4 +25,4 @@ test.exe:
 PHONY:	all clean
 
 clean:
-	rm -f *.o .a *.exe *.txt Ex4 
+	rm -f *.o .a *.exe *.txt Ex4
