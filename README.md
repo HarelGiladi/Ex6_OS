@@ -1,7 +1,7 @@
 # Ex6_OS
 
 
-*Authors: Eilon Barashi - 322679713 & Harel Giladi - 211576277*
+*Authors: Eilon Barashi  & Harel Giladi *
 
 disgein patterns.
 implement of all the questions im desgien patterns/
