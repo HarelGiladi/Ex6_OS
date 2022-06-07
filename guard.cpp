@@ -23,13 +23,11 @@ public:
 
 
 int counter;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t locker = PTHREAD_MUTEX_INITIALIZER;
 
 void* increasment_by_666(void* arg){
-    Guard guarder(&mutex);
-    for(int i = 0; i < 666; ++i){
-        ++counter;
-    }
+    Guard guarder(&locker);
+    for(int i = 0; i < 666;i++){counter++;}
     return NULL;
 }
 int main(){
@@ -39,7 +37,7 @@ int main(){
     pthread_create(&t2, NULL, increasment_by_666, NULL);
     pthread_join(t1, NULL);
     pthread_join(t2, NULL);
-     std::cout <<  " !ASSERTION WAS A SUCCESS!\n" <<std::endl;
+    std::cout <<  " !ASSERTION WAS A SUCCESS!\n"<<std::endl;
     assert(counter == 1332);
     std::cout <<  " !ASSERTION WAS A SUCCESS!\n" <<std::endl;
 
@@ -51,8 +49,6 @@ int main(){
     assert(counter == 1998);
     std::cout <<  " !ASSERTION WAS A SUCCESS!\n " <<std::endl;
     std::cout <<  " !TEST PASSED SECCESSFULLY!\n" <<std::endl;
-
-
 
     return 0;
 }
