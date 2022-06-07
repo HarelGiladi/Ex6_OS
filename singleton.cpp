@@ -57,18 +57,18 @@ int main () {
     std::cout << s2 <<"\n"<<std::endl;
     assert(s1 == s2);
     std::cout << "!ASSERTION WAS A SUCCSES!\n" << std::endl;
-
+    assert(s2 == s1);
     std::cout << "!ASSERTION WAS A SUCCSES!\n" << std::endl;
     s2->destroy;
-    
+
     Singleton<FILE*>* s3 = Singleton<FILE*>::instance();
     std::cout << s3<<"\n" << '\n';
     assert(s1 == s3);
     std::cout << "!ASSERTION WAS A SUCCSES!\n" << std::endl;
+    assert(s3 == s1);
     std::cout << "!ASSERTION WAS A SUCCSES!\n" << std::endl;
-
+ 
     std::cout <<  "!TEST PASSED SECCESSFULLY!\n" <<std::endl;
-
     return(0);
 
 }

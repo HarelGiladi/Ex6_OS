@@ -36,17 +36,21 @@ int main(){
     pthread_create(&t1, NULL, increasment_by_666, NULL);
     pthread_create(&t2, NULL, increasment_by_666, NULL);
     pthread_join(t1, NULL);
-    pthread_join(t2, NULL);
+    assert(1332==counter);
     std::cout <<  " !ASSERTION WAS A SUCCESS!\n"<<std::endl;
+    pthread_join(t2, NULL);
     assert(counter == 1332);
     std::cout <<  " !ASSERTION WAS A SUCCESS!\n" <<std::endl;
 
 
-    std::cout <<  " !ASSERTION WAS A SUCCESS!\n" <<std::endl;
     pthread_create(&t3, NULL, increasment_by_666, NULL);
+    assert(counter == 1332);
+    std::cout <<  " !ASSERTION WAS A SUCCESS!\n" <<std::endl;
     pthread_join(t3, NULL);
     std::cout <<  " !ASSERTION WAS A SUCCESS!\n" <<std::endl;
     assert(counter == 1998);
+    std::cout <<  " !ASSERTION WAS A SUCCESS!\n " <<std::endl;
+    assert(1998==counter);
     std::cout <<  " !ASSERTION WAS A SUCCESS!\n " <<std::endl;
     std::cout <<  " !TEST PASSED SECCESSFULLY!\n" <<std::endl;
 
