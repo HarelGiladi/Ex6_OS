@@ -60,6 +60,7 @@ int main () {
 
     std::cout << "!ASSERTION WAS A SUCCSES!\n" << std::endl;
     s2->destroy;
+    
     Singleton<FILE*>* s3 = Singleton<FILE*>::instance();
     std::cout << s3<<"\n" << '\n';
     assert(s1 == s3);
