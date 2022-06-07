@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <iostream>
-
+#pragma once
 using namespace std;
 
  
@@ -24,7 +24,7 @@ struct Node {
 
 struct Queue {
     Node *front, *rear;
-    int fd;
+    int *fd;
     pthread_mutex_t lock;
     pthread_cond_t cond;
     int size;
@@ -84,74 +84,22 @@ struct Queue {
         }
       
         this->size--;
-        Node* temp = front;
         front = front->next;
 
-        //  if (front == NULL)
-        //     rear = NULL;
-        
-        // delete (temp);
 
         pthread_mutex_unlock(&(lock));
     }
 
     void set_fd(int new_fd) {
         pthread_mutex_lock(&(lock));
-        this->fd = new_fd;
+        int* pfd = (int*) malloc (sizeof(int));
+        *pfd = new_fd;
+        this->fd = pfd;
         pthread_mutex_unlock(&(lock));
     }
 
-    int get_fd() {
+    int* get_fd() {
         return this->fd;
     }
 };
 
-// Active Object - ex. 2
-
-// struct active_object {
-//     pthread_t t;
-//     void (*func1)(void*);
-//     void (*func2)(void*);
-//     Queue* queue;
-// };
-
-
-// void* runAO (void* vao) {
-    
-//     active_object* ao = (active_object*)vao;
-//     while (true) {
-//         if (ao->queue->size > 0) {
-//             char* tmp = (char*) malloc (sizeof(char));
-//             tmp = (char*) ao->queue->front->data;        
-//             ao->queue->deQ();
-
-//             if (ao->func1 != NULL) {
-//                 ao->func1(tmp);
-//             }
-
-//             if (ao->func2 != NULL) {
-//                 ao->func2(tmp);
-//             }
-//         }
-
-//     }
-    
-// }
-
-
-// active_object* newAO (Queue* q, void (*f1)(void*), void (*f2)(void*)) {
-
-//     active_object* ao = new active_object();
-//     ao->func1 = f1;
-//     ao->func2 = f2;
-//     ao->queue = q;
-//     pthread_create(&(ao->t), NULL, runAO, (void*)ao);
-//     return ao;
-
-// }
-
-// void destroyAO (active_object* ao) {
-//     ao->queue->destroyQ(); //clear the Queue
-//     pthread_cancel(ao->t); //kill the thread
-//     pthread_exit(NULL); //terminate the program
-// }
