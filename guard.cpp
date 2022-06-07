@@ -61,29 +61,11 @@ int main(){
 
 
 
-
-// answer to question in section 4
-// you cant use this guard in order to protect strtok and make it thread safe
-// because if a thread A enters this function with a string and delimiter he locks the function with guard
-// and when he exits from the function he releases the guard.
-// after that another thread B enters this function with a different string and different delimiter and updates the global
-// variable, of course he locks the function but when he exits the function he releases the guard
-// then thread A will call the strktok with NULL and his delimiter, but thread B already updated the global variable
-// and thread A expects that the global variable to be the one he entered.
-// so in conclusion you cant make strtok thread safe using this guard, because this guard prevents other threads to enter
-// the function when another thread is in, but it doesnt prevent them from changing the global variable after the
-// thread is done
-
-
-
-//The C library function char *strtok(char *str, const char *delim) breaks string str into a series of tokens using the delimiter delim.
-//we won't be able to use this function with this guard because many threads may be calling strtok with different strings.
-// and it will only remember the last one and return the wrong result.
-
-
-/* Q4 Answer:
- * When working with multiple threads, this guard cannot protect strtok
- * since multiple threads may be calling strtok with different string.
- * strtok will only keep track of the last string and eventually will
- * return the wrong result
- */
+/*
+ short answer we can't use gurad for protecting strtok.
+ ---------------------------------------------------------
+ more in depth, beacuse it will lock strtok while a thread is using it
+ but after it is done another thread can use the funcation and change the global
+ locker and that will cause the func to "remmeber" only the last thread who call her.
+ to sum up it wont protect the global locker which is a serious problam.
+*/
