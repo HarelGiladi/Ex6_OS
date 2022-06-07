@@ -8,8 +8,8 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-#include "Mem_Imp.hpp"
-using namespace Ex5;
+//#include "Mem_Imp.hpp"
+//using namespace Ex5;
 
 #define PORT "6666" 
 
@@ -24,26 +24,26 @@ void *get_in_addr(struct sockaddr *sa){
 
 bool precmp (const char *pre, const char *str){return strncmp(pre, str, strlen(pre)) == 0;}
 
-void *send_handler(void* socket) 
-{
-    size_t SIZE = 1024;
-    char * input;
-    int sock = *(int *)socket;
-    std::cout << "ENTER A COMMAND (TOP, POP, PUSH, QUIT): \n" << std::endl;
-    while(true)
-    {
-        input = (char*)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
-        getline(&input, &SIZE, stdin);
-        if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
-            send(sock, input, SIZE, 0);
-            sleep(1);
-            std::cout << "ENTER A COMMAND (TOP, POP, PUSH,QUIT): \n" << std::endl;
-        }
-        if (precmp("QUIT", input)){
-            send(sock, "QUIT", SIZE, 0);
-            exit(0);}  
-    }
- }
+// void *send_handler(void* socket) 
+// {
+//     size_t SIZE = 1024;
+//     char * input;
+//     int sock = *(int *)socket;
+//     std::cout << "ENTER A COMMAND (TOP, POP, PUSH, QUIT): \n" << std::endl;
+//     while(true)
+//     {
+//         input = (char*)Ex5::Mem_Imp::calloc(SIZE, sizeof(char));
+//         getline(&input, &SIZE, stdin);
+//         if(precmp("PUSH",input)||precmp("POP",input)||precmp("TOP",input)){
+//             send(sock, input, SIZE, 0);
+//             sleep(1);
+//             std::cout << "ENTER A COMMAND (TOP, POP, PUSH,QUIT): \n" << std::endl;
+//         }
+//         if (precmp("QUIT", input)){
+//             send(sock, "QUIT", SIZE, 0);
+//             exit(0);}  
+//     }
+//  }
 
 //the code was wrriten with the help of the internet
 int main(int argc, char *argv[])
@@ -94,34 +94,33 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); 
     
-    pthread_t client_thread;
-    pthread_create(&client_thread, NULL, send_handler, &sock);
+    // pthread_t client_thread;
+    // pthread_create(&client_thread, NULL, send_handler, &sock);
     
     char * output;
-    output = (char*)Ex5::Mem_Imp::calloc(1024, sizeof(char));
+    output = (char*)calloc(1024, sizeof(char));
 
     while (true)
     {
         memset(output,0,strlen(output));
-
+        printf("Enter Messege: ");
+        fgets(output, 1024, stdin);
+        send(sock, output, 1024, 0);
+        memset(output,0,strlen(output));
         if ((recv(sock, output, 1024, 0)) == -1) {
             perror("recv");
             exit(1);
         }
         else 
         {
-            if(precmp("DEBUG", output))
-            {
-                std::cout << output << std::endl;
-            }
-            else
-            {
-                printf("OUTPUT: %s\n",output);   
-            }
+            printf("OUTPUT: %s\n", output);
         }
+        
+
     } 
     
     close(sock);
 
     return 0;
 }  
+
