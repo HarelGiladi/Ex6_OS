@@ -8,22 +8,20 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/wait.h>
-#include "Stack.hpp"
 #include <fcntl.h>
 #include <sys/mman.h>
+
+#include "AO.hpp"
 
 #define PORT "6666" 
 #define BACKLOG 10 
 #define SIZE 1024
-int fd;
-struct my_stack
-{
-    char data[SIZE];
-    int index;
-};
 
-my_stack * share_stack; 
-struct flock lock;
+
+Queue *q_1 = Queue::createQ();
+Queue *q_2 = Queue::createQ();
+Queue *q_3 = Queue::createQ();
+
 
 void sigchld_handler(int s)
 {
@@ -31,93 +29,136 @@ void sigchld_handler(int s)
     while(waitpid(-1, NULL, WNOHANG) > 0);
     errno = saved_errno;
 }
+
+
 bool precmp (const char *pre, const char *str)
 {
     return strncmp(pre, str, strlen(pre)) == 0;
 }
 
-void * send_handler(void * tempSock)
-{
-    char command[1024];
-    int *sock = (int*) tempSock;
-    int new_sock = *sock;
-    if (send(*sock, "CONNECTED", 10, 0) == -1)
+bool isValid(char* text) {
+    for (size_t i = 0; i < strlen(text); i++)
     {
-        perror("send"); 
-    }      
-    while (true)
-    {
-        memset(command,0,strlen(command));
-        if ((recv(*sock, command, SIZE, 0)) !=-1) 
-        {
-             if (precmp("QUIT",command))
-            { 
-                printf("DEBUG: CLOSE CONNECTION WITH CLIENT \n");
-                break;
-            }
-            lock.l_type = F_WRLCK;   
-            fcntl(fd, F_SETLKW, &lock);
-            if(precmp("POP",command))
-            {
-                char * poped = share_stack[share_stack->index - 1].data;
-                if (precmp("NULL",poped))
-                {
-                    strcpy(share_stack[share_stack->index+1].data, "NULL");
-                    if (send(new_sock,"DEBUG:STACK IS EMPTY",21, 0)== -1)
-                    {
-                        perror("send");
-                    }
-                    std::cout << "DEBUG:STACK IS EMPTY" << std::endl;
-                    lock.l_type = F_UNLCK; //unlocking the lock in case of underflow
-                    fcntl (fd, F_SETLKW, &lock);
-                    continue;
-                }
-                strcpy(share_stack[share_stack->index--].data, "");
-                if (send(new_sock,"POP COMPLETED",14, 0)== -1){
-                      perror("send"); 
-                }
-                std::cout << "OUTPUT:" << "POP COMPLETED" << std::endl;
-            }
-            else if(precmp("PUSH",command))
-            {
-                memcpy(command, command + 4, 1020);
-                strcpy(share_stack[share_stack->index++].data, command);
-                if (send(new_sock,"PUSH COMPLETED",15, 0)== -1){
-                        perror("send"); 
-                    }
-                std::cout << "OUTPUT:" << "POP COMPLETED" << std::endl;
-             }
-            else if(precmp("TOP",command))
-            {
-                char * toped = share_stack[share_stack->index - 1].data;
-
-                if (precmp("NULL",toped))
-                {
-                    std::cout << "DEBUG:STACK IS EMPTY"<< std::endl;
-                    if (send(new_sock, "DEBUG:STACK IS EMPTY\n",22,0) == -1)
-                    {
-                        perror("send");
-                    }
-                    lock.l_type = F_UNLCK; //unlocking the lock in case of underflow
-                    fcntl (fd, F_SETLKW, &lock);
-                    continue;
-                }
-                else
-                {
-                    if (send(new_sock, toped,strlen(toped),0) == -1)
-                    {
-                        perror("send");
-                    }
-                }
-
-            }
-            lock.l_type = F_UNLCK; 
-            fcntl (fd, F_SETLKW, &lock);
-    
+        if (!isprint(text[i])) {
+            return false;
         }
     }
-    close(new_sock);
-    close(fd);
+    return true;    
+}
+
+void* enQ_to_2(void* x) {
+    q_2->enQ(x);
+    return x;
+}
+
+void* enQ_to_3(void* x) {
+    q_3->enQ(x);
+    return x;
+}
+
+//https://www.tutorialspoint.com/cplusplus-program-to-implement-caesar-cypher
+void* caesarCypher (void* data) {
+    std::cout<<"cypher"<< (char*)data<<std::endl;
+    char ch;
+    int key = 1;
+    char* msg ;
+    msg = (char *) data;
+
+    for(int i = 0; msg[i] != '\0'; ++i) {
+         ch = msg[i];
+
+         //encrypt for lowercase letter
+         if (ch >= 'a' && ch <= 'z'){
+            ch = ch + key;
+            if (ch > 'z') {
+               ch = ch - 'z' + 'a' - 1;
+            }  
+            msg[i] = ch;
+         }
+         //encrypt for uppercase letter
+         else if (ch >= 'A' && ch <= 'Z'){
+            ch = ch + key;
+            if (ch > 'Z'){
+               ch = ch - 'Z' + 'A' - 1;
+            }
+            msg[i] = ch;
+         }
+      }
+    std::cout<<"CC"<<msg<<std::endl;
+    return data;
+}
+
+//https://www.geeksforgeeks.org/convert-alternate-characters-string-upper-case/
+void* convert (void* data) {
+    std::cout<<"convert"<<std::endl;
+    char ch;
+    char* msg = (char*) data;
+    for (int i = 0; msg[i] != '\0'; ++i) {
+        ch = msg[i]; 
+
+        //Convert lowercase to uppercase
+        if (ch >= 'a' && ch <= 'z'){
+            ch = (ch - 'a') + 'A';
+            msg[i] = ch;
+        }
+        // Convert uppercase to lowercase
+        else if (ch >= 'A' && ch <= 'Z') {
+                ch = (ch - 'A') + 'a';
+                msg[i] = ch;
+        }
+    }
+    std::cout<<"FF"<<msg<<std::endl;
+    return data;
+}
+
+
+
+void* send_to(void* x) {
+    cout<<"send"<<endl;
+    char* data = (char*)x;
+    cout<<data<<endl;
+    if (send(q_3->get_fd(), x, strlen(data), 0) < 0) {
+        cout<<"error"<<endl;
+        perror("error");
+        exit(1);
+    }
+    cout<<"done"<<endl;
+    return x;
+}
+
+static void * handle(void *tempSock) {
+    
+    int* sock = (int*) tempSock;
+    int new_sock = *sock;
+    char str[SIZE];
+    active_object* ao_1 , *ao_2, *ao_3; 
+   
+    while (1) {
+        memset(str, 0,SIZE);
+        recv(new_sock,str,SIZE,0);
+        cout << "im here 1\n";fflush(stdout);
+        cout << str;fflush(stdout);
+        q_1->enQ(str);
+        cout << (char*)q_1->front->data;
+        q_3->enQ(str);
+        cout << (char*)q_3->front->data;
+        q_3->set_fd(new_sock);
+        if (!(strcmp(str, "QUIT\n"))) {
+            break;
+        }        
+        cout << "im here 2\n";fflush(stdout);
+        ao_1 = newAO(q_1, caesarCypher, enQ_to_2);
+        cout << "im here 3\n";fflush(stdout);
+        ao_2 = newAO(q_2, convert, enQ_to_3);
+        cout << "im here 4\n";fflush(stdout);
+        ao_3 = newAO(q_3, send_to, NULL);
+        cout << "im here 5\n";fflush(stdout);
+        
+    }
+    destroyAO(ao_1);
+    destroyAO(ao_2);
+    destroyAO(ao_3);
+    
     return NULL;
 }
 
@@ -126,19 +167,7 @@ void * send_handler(void * tempSock)
 
 int main(void)
 {
-    fd = open("shared_file.txt",O_WRONLY|O_CREAT);
-    if (fd == -1)
-    {
-        perror("DEBUG: FILE CREATION FAILED");
-    }
-    memset(&lock, 0, sizeof(lock)); //initializing the lock
-    share_stack = (my_stack *)mmap(NULL, 10240, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0); 
-    if (share_stack == MAP_FAILED)
-    {
-        printf("DEBUG: MAPPING STACK FAILED\n");
-        return 1;
-    }
-    strcpy(share_stack[share_stack->index++].data, "NULL");
+  
     int sock, new_sock;  
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; 
@@ -209,13 +238,14 @@ int main(void)
             continue;
         }
         std::cout << "CLIENT CONNECTED TO THE SERVER\n" << std::endl;
-        if (!fork()) {
-            close(sock);
-            send_handler(&new_sock);
+       
+        pthread_t thread;
+        int * ptr = (int*) malloc (sizeof(int));
+        *ptr = new_sock;
+        if (pthread_create(&thread, NULL, handle, ptr) != 0) { 
+            perror("start thread");
             close(new_sock);
-            exit(0);
         }
-        close(new_sock);
     }
     
     return 0;
