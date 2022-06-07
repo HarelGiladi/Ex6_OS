@@ -1,20 +1,40 @@
 CC=g++
- FLAGS=-Wall -pthread
+FLAGS=-Wall -pthread
 
-all: Ex5
+all: Ex6
 
-Ex5: server.o client.exe test.exe
-	$(CC) $(FLAGS)  server.o  -o server.exe
+Ex6: singleton_test.exe guard_test.exe server.exe client.exe select_client.exe pollserver.exe
 
-client.exe: client.cpp Queue.hpp AO.hpp
-	$(CC) $(FLAGS) -o client.exe client.cpp 
+# running programs
+server.exe: server.o Queue.hpp 
+	$(CC) $(FLAGS) server.o -o server.exe 
+client.exe: client.o
+	$(CC) $(FLAGS) -o client.exe client.o
+pollserver.exe: pollserver.o reactor.hpp
+	$(CC) $(FLAGS) pollserver.o -o pollserver.exe 
+select_client.exe: select_client.o reactor.hpp
+	$(CC) $(FLAGS) select_client.o -o select_client.exe
+singleton_test.exe: singleton.o
+	$(CC) $(FLAGS) singleton.o -o singleton_test.exe
+guard_test.exe: guard.o
+	$(CC) $(FLAGS) guard.o -o guard_test.exe
 
-server.o: server.cpp
-	$(CC) $(FLAGS) -c  server.cpp 
+#object files before linker
+server.o: server.cpp 
+	$(CC) $(FLAGS) -c server.cpp
+client.o: client.cpp 
+	$(CC) $(FLAGS) -c client.cpp
+pollserver.o: pollserver.cpp 
+	$(CC) $(FLAGS) -c pollserver.cpp
+select_client.o: select_client.cpp 
+	$(CC) $(FLAGS) -c select_client.cpp
+singleton.o: singleton.cpp
+	$(CC) $(FLAGS) -c singleton.cpp
+guard.o: guard.cpp
+	$(CC) $(FLAGS) -c guard.cpp
 
-test.exe:
 
-PHONY:	all clean
+.PHONY: clean all
 
 clean:
-	rm -f *.o .a *.exe *.txt Ex5
+	rm -rf *.o  *.exe
