@@ -26,8 +26,8 @@ client.o: client.cpp
 	$(CC) $(FLAGS) -c client.cpp
 pollserver.o: pollserver.cpp 
 	$(CC) $(FLAGS) -c pollserver.cpp
-select_client.o: select_client.cpp 
-	$(CC) $(FLAGS) -c select_client.cpp
+select_client.o: selectclient.cpp 
+	$(CC) $(FLAGS) -c selectclient.cpp
 singleton.o: singleton.cpp
 	$(CC) $(FLAGS) -c singleton.cpp
 guard.o: guard.cpp
