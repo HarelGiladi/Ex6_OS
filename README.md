@@ -14,13 +14,21 @@ Open terminal in the directory of the dowload files make sure they all in the sa
 
 After compiling:
 
-ques 1-3: run ./main1 to run the server with the pipeline
-     run ./client 
+for ques 1-3: 
+     run ./server.exe on one terminal 
+     run ./client.exe on another terminal
+     then enter strings accordingly to the assignmnet
 
-ques 4: run ./guard
+for ques 4: 
+     run ./guard_test.exe
 
-ques 5: run ./singleton
+for ques 5: 
+     run ./singleton_test.exe
 
-ques 6: run ./pollserver
-     run ./reactorclient localhost' for each client 
-
+for ques 6: 
+     run ./pollserver.exe on one terminal 
+     run ./select_client.exe 'localhost' on another terminal
+     then enter strings accordingly to the assignmnet
+     
+for genral test:
+     run ./test.exe
