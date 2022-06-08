@@ -38,6 +38,8 @@ bool precmp (const char *pre, const char *str)
 Queue *q_1 = new Queue();
 Queue *q_2 = new Queue();
 Queue *q_3 = new Queue();
+active_object* ao_1 = nullptr, *ao_2, *ao_3;    
+
 
 
 void enQ_to_2(void* x) {
@@ -113,7 +115,6 @@ static void * handler(void *tempSock) {
     int* sock = (int*) tempSock;
     int new_sock = *sock;
     char input[1024];
-    active_object* ao_1 = nullptr, *ao_2, *ao_3;    
     while (1) {
         recv(new_sock,input,1024,0);
         q_1->enQ(input);
@@ -121,11 +122,11 @@ static void * handler(void *tempSock) {
         if (!(strcmp(input, "QUIT\n"))) {
             break;
         }
-        if (!ao_1) {
-            ao_1 = newAO(q_1, caesarCypher, enQ_to_2);
-            ao_2 = newAO(q_2, convert, enQ_to_3);
-            ao_3 = newAO(q_3, send_to, NULL);
-        }
+        // if (!ao_1) {
+        //     ao_1 = newAO(q_1, caesarCypher, enQ_to_2);
+        //     ao_2 = newAO(q_2, convert, enQ_to_3);
+        //     ao_3 = newAO(q_3, send_to, NULL);
+        // }
     }
     destroyAO(ao_1);
     destroyAO(ao_2);
@@ -146,7 +147,9 @@ void *get_in_addr(struct sockaddr *sa) {
 //the code was wrriten with the help of the internet
 //and the class material
 int main(void) {
-    
+    ao_1 = newAO(q_1, caesarCypher, enQ_to_2);
+    ao_2 = newAO(q_2, convert, enQ_to_3);
+    ao_3 = newAO(q_3, send_to, NULL);
     int sock, new_sock;  
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; 

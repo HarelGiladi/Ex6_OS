@@ -43,7 +43,7 @@ void *send(void *arg)
     while (connected != 0)
     {
         scanf("%s", input);
-        printf("SEND: %s\n",input);
+        printf("SEND: %s\n", input);
         if (strncmp(input,"QUIT",4) == 0)
         {
             send(sock,"exit",4,0);

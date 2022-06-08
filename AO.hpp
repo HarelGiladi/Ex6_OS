@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "Queue.hpp"
-
+ pthread_mutex_t lock;
 struct active_object {
     pthread_t t;
     void (*func1)(void*);
@@ -18,8 +18,10 @@ struct active_object {
 };
 
 
-void* runAO (void* new_ao) {
+void* run (void* new_ao) {
+    
     active_object* ao = (active_object*)new_ao;
+    pthread_mutex_lock(&(lock));
     while (1) {
         if (ao->queue->size >0) {
             char* tmp = (char*) malloc (sizeof(char));
@@ -33,7 +35,7 @@ void* runAO (void* new_ao) {
                 ao->func2(tmp);
             }
         }
-
+    pthread_mutex_unlock(&(lock));
     }
     printf("active object terminated!\n");
 }
@@ -46,7 +48,7 @@ active_object* newAO (Queue* q, void (*func1)(void*), void (*func2)(void*)) {
     ao->func2 = func2;
     ao->queue = q;
     ao->run= true;
-    pthread_create(&ao->t, NULL, runAO, (void*)ao);
+    pthread_create(&ao->t, NULL, run, (void*)ao);
 
     return ao;
 
