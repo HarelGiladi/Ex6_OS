@@ -22,7 +22,6 @@
 
 #define PORT "6666"
 #define BACKLOG 10
-#define MAXDATASIZE 1024;
 
 void sigchld_handler(int s)
 {

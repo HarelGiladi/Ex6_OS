@@ -8,35 +8,20 @@
 
 using namespace std;
 
-#define MAX_NUM 64
-#define ZERO 0
+#define MAX_NUM 66
 
 struct reactor {
     
-    void (*funcs[MAX_NUM])(void*);
     pthread_t t;
     pthread_mutex_t lock;
     struct pollfd pfd[MAX_NUM];
     int fd_count = 0;
-    int func_count = 0;  
+    int func_count = 0; 
+    void* (*funcs[MAX_NUM])(void*);
+    int fd;
+
 
 };
-
-void* runner(void* r) {
-    reactor* react = (reactor*) r;
-    while (1) {
-        int poll_count = poll(react->pfd, react->fd_count, -1);
-        if (poll_count == -1) {
-            perror("poll");
-            exit(1);
-        }
-        for (int i = 0; i < react->fd_count; i++) {
-            if (react->pfd[i].revents & POLLIN) {
-                react->funcs[i](&(react->pfd[i].fd));
-            }
-        }
-    }    
-}
 
 void* newReactor() {
 
@@ -45,33 +30,27 @@ void* newReactor() {
 
 }
 
-void* InstallHandler(reactor* r, void (*f)(void*), int fd) {
-    if (r->fd_count <= ZERO || r->func_count <= ZERO) {
-        r->pfd[r->fd_count].fd = fd;
+void* InstallHandler(reactor* r, void* (f)(void*), int *fd) {
+        r->pfd[r->fd_count].fd = *fd;
         r->funcs[r->func_count] = f;
         r->pfd->events = POLLIN;
         r->fd_count++;
         r->func_count++;
-        pthread_create(&(r->t), NULL, runner, r);
-    } else {
-        r->pfd[r->fd_count].fd = fd;
-        r->funcs[r->func_count] = f;
-        r->pfd->events = POLLIN;
-        r->fd_count++;
-        r->func_count++;
-    }
-
+        r->fd = *fd;
+        pthread_create(&(r->t), NULL, f, r);
+    return r;
 }
 
 void* RemoveHandler(reactor* r, int fd) {
     for (int i =0; i < r->fd_count; i++) {
         if (r->pfd[i].fd == fd) {
             r->pfd[i].fd = -1;
-            r->pfd[i].events = ZERO;
+            r->pfd[i].events = 0;
             r->funcs[i] = NULL;
             r->fd_count--;
             r->func_count--;
         }
     }
     close(fd);
+    return r;
 }

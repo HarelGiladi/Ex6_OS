@@ -12,8 +12,8 @@ client.exe: client.o
 	$(CC) $(FLAGS) -o client.exe client.o
 pollserver.exe: pollserver.o reactor.hpp
 	$(CC) $(FLAGS) pollserver.o -o pollserver.exe 
-select_client.exe: select_client.o reactor.hpp
-	$(CC) $(FLAGS) select_client.o -o select_client.exe
+select_client.exe: selectclient.o reactor.hpp
+	$(CC) $(FLAGS) selectclient.o -o select_client.exe
 singleton_test.exe: singleton.o
 	$(CC) $(FLAGS) singleton.o -o singleton_test.exe
 guard_test.exe: guard.o
@@ -26,7 +26,7 @@ client.o: client.cpp
 	$(CC) $(FLAGS) -c client.cpp
 pollserver.o: pollserver.cpp 
 	$(CC) $(FLAGS) -c pollserver.cpp
-select_client.o: selectclient.cpp 
+selectclient.o: selectclient.cpp 
 	$(CC) $(FLAGS) -c selectclient.cpp
 singleton.o: singleton.cpp
 	$(CC) $(FLAGS) -c singleton.cpp
