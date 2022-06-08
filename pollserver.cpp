@@ -14,7 +14,7 @@
 #include "reactor.hpp"
 #include <pthread.h>
 
-#define PORT "6666" // Port we're listening on
+#define PORT "6666" 
 int fd_count;
 struct pollfd *pfd;
 int listener;
@@ -31,11 +31,10 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
-// Return a listening socket
 int get_listener_socket(void)
 {
-    int listener; // Listening socket descriptor
-    int yes = 1;  // For setsockopt() SO_REUSEADDR, below
+    int listener; 
+    int yes = 1; 
     int rv;
 
     struct addrinfo hints, *ai, *p;
@@ -71,15 +70,13 @@ int get_listener_socket(void)
         break;
     }
 
-    freeaddrinfo(ai); // All done with this
+    freeaddrinfo(ai);
 
-    // If we got here, it means we didn't get bound
     if (p == NULL)
     {
         return -1;
     }
 
-    // Listen
     if (listen(listener, 10) == -1)
     {
         return -1;
@@ -156,7 +153,7 @@ int main(void)
 
     if (listener == -1)
     {
-        fprintf(stderr, "error getting listening socket\n");
+        fprintf(stderr, "error\n");
         exit(1);
     }
 
@@ -170,7 +167,7 @@ int main(void)
 
         if (poll_count == -1)
         {
-            perror("poll");
+            perror("error in poll");
             exit(1);
         }
 

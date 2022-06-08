@@ -16,7 +16,7 @@ After compiling:
 
 for ques 1-3: 
      run ./server.exe on one terminal 
-     run ./client.exe on another terminal
+     run ./client.exe 'localhost' on another terminal
      then enter strings accordingly to the assignmnet
 
 for ques 4: 
@@ -27,8 +27,8 @@ for ques 5:
 
 for ques 6: 
      run ./pollserver.exe on one terminal 
-     run ./select_client.exe 'localhost' on another terminal
+     run ./select_client.exe on another terminal
      then enter strings accordingly to the assignmnet
      
-for genral test on Queue AO reactor:
+for genral test on Queue, AO, reactor:
      run ./test.exe

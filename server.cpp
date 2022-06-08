@@ -122,11 +122,6 @@ static void * handler(void *tempSock) {
         if (!(strcmp(input, "QUIT\n"))) {
             break;
         }
-        // if (!ao_1) {
-        //     ao_1 = newAO(q_1, caesarCypher, enQ_to_2);
-        //     ao_2 = newAO(q_2, convert, enQ_to_3);
-        //     ao_3 = newAO(q_3, send_to, NULL);
-        // }
     }
     destroyAO(ao_1);
     destroyAO(ao_2);
