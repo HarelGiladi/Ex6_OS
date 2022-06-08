@@ -30,5 +30,5 @@ for ques 6:
      run ./select_client.exe 'localhost' on another terminal
      then enter strings accordingly to the assignmnet
      
-for genral test:
+for genral test on Queue AO reactor:
      run ./test.exe
